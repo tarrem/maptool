@@ -22,10 +22,12 @@ import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.LookupTable;
 import net.rptools.maptool.model.LookupTable.LookupEntry;
+import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
 import net.rptools.parser.function.AbstractFunction;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 
 public class LookupTableFunction extends AbstractFunction {
@@ -53,6 +55,7 @@ public class LookupTableFunction extends AbstractFunction {
         "getTableImage",
         "setTableImage",
         "copyTable",
+        "getTableEntry",
         "setTableEntry");
   }
 
@@ -74,7 +77,7 @@ public class LookupTableFunction extends AbstractFunction {
 
     if ("getTableNames".equalsIgnoreCase(function)) {
 
-      checkNumberOfParameters("getTableNames", params, 0, 1);
+      FunctionUtil.checkNumberParam("getTableNames", params, 0, 1);
       String delim = ",";
       if (params.size() > 0) {
         delim = params.get(0).toString();
@@ -87,7 +90,7 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("getTableVisible".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("getTableVisible", params, 1, 1);
+      FunctionUtil.checkNumberParam("getTableVisible", params, 1, 1);
       String name = params.get(0).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
       return lookupTable.getVisible() ? "1" : "0";
@@ -95,18 +98,18 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("setTableVisible".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("setTableVisible", params, 2, 2);
+      FunctionUtil.checkNumberParam("setTableVisible", params, 2, 2);
       String name = params.get(0).toString();
       String visible = params.get(1).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
-      lookupTable.setVisible(AbstractTokenAccessorFunction.getBooleanValue(visible));
+      lookupTable.setVisible(FunctionUtil.getBooleanValue(visible));
       MapTool.serverCommand().updateCampaign(MapTool.getCampaign().getCampaignProperties());
       return lookupTable.getVisible() ? "1" : "0";
 
     } else if ("getTableAccess".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("getTableAccess", params, 1, 1);
+      FunctionUtil.checkNumberParam("getTableAccess", params, 1, 1);
       String name = params.get(0).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
       return lookupTable.getAllowLookup() ? "1" : "0";
@@ -114,17 +117,17 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("setTableAccess".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("setTableAccess", params, 2, 2);
+      FunctionUtil.checkNumberParam("setTableAccess", params, 2, 2);
       String name = params.get(0).toString();
       String access = params.get(1).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
-      lookupTable.setAllowLookup(AbstractTokenAccessorFunction.getBooleanValue(access));
+      lookupTable.setAllowLookup(FunctionUtil.getBooleanValue(access));
       MapTool.serverCommand().updateCampaign(MapTool.getCampaign().getCampaignProperties());
       return lookupTable.getAllowLookup() ? "1" : "0";
 
     } else if ("getTableRoll".equalsIgnoreCase(function)) {
 
-      checkNumberOfParameters("getTableRoll", params, 1, 1);
+      FunctionUtil.checkNumberParam("getTableRoll", params, 1, 1);
       String name = params.get(0).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
       return lookupTable.getRoll();
@@ -132,7 +135,7 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("setTableRoll".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("setTableRoll", params, 2, 2);
+      FunctionUtil.checkNumberParam("setTableRoll", params, 2, 2);
       String name = params.get(0).toString();
       String roll = params.get(1).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
@@ -143,7 +146,7 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("clearTable".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("clearTable", params, 1, 1);
+      FunctionUtil.checkNumberParam("clearTable", params, 1, 1);
       String name = params.get(0).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
       lookupTable.clearEntries();
@@ -153,7 +156,7 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("addTableEntry".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("addTableEntry", params, 4, 5);
+      FunctionUtil.checkNumberParam("addTableEntry", params, 4, 5);
       String name = params.get(0).toString();
       String min = params.get(1).toString();
       String max = params.get(2).toString();
@@ -170,7 +173,7 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("deleteTableEntry".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("deleteTableEntry", params, 2, 2);
+      FunctionUtil.checkNumberParam("deleteTableEntry", params, 2, 2);
       String name = params.get(0).toString();
       String roll = params.get(1).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
@@ -188,7 +191,7 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("createTable".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("createTable", params, 3, 4);
+      FunctionUtil.checkNumberParam("createTable", params, 3, 4);
       String name = params.get(0).toString();
       String visible = params.get(1).toString();
       String lookups = params.get(2).toString();
@@ -198,8 +201,8 @@ public class LookupTableFunction extends AbstractFunction {
       }
       LookupTable lookupTable = new LookupTable();
       lookupTable.setName(name);
-      lookupTable.setVisible(AbstractTokenAccessorFunction.getBooleanValue(visible));
-      lookupTable.setAllowLookup(AbstractTokenAccessorFunction.getBooleanValue(lookups));
+      lookupTable.setVisible(FunctionUtil.getBooleanValue(visible));
+      lookupTable.setAllowLookup(FunctionUtil.getBooleanValue(lookups));
       if (asset != null) lookupTable.setTableImage(asset);
       MapTool.getCampaign().getLookupTableMap().put(name, lookupTable);
       MapTool.serverCommand().updateCampaign(MapTool.getCampaign().getCampaignProperties());
@@ -208,7 +211,7 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("deleteTable".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("deleteTable", params, 1, 1);
+      FunctionUtil.checkNumberParam("deleteTable", params, 1, 1);
       String name = params.get(0).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
       if (lookupTable != null) {
@@ -220,15 +223,21 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("getTableImage".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("getTableImage", params, 1, 1);
+      FunctionUtil.checkNumberParam("getTableImage", params, 1, 1);
       String name = params.get(0).toString();
       LookupTable lookupTable = getMaptoolTable(name, function);
-      return lookupTable.getTableImage();
+      MD5Key img = lookupTable.getTableImage();
+      if (img == null) {
+        // Returning null causes an NPE when output is dumped to chat.
+        return "";
+      } else {
+        return img;
+      }
 
     } else if ("setTableImage".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("setTableImage", params, 2, 2);
+      FunctionUtil.checkNumberParam("setTableImage", params, 2, 2);
       String name = params.get(0).toString();
       MD5Key asset = getAssetFromString(params.get(1).toString());
       LookupTable lookupTable = getMaptoolTable(name, function);
@@ -239,7 +248,7 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("copyTable".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("copyTable", params, 2, 2);
+      FunctionUtil.checkNumberParam("copyTable", params, 2, 2);
       String oldName = params.get(0).toString();
       String newName = params.get(1).toString();
       LookupTable oldTable = getMaptoolTable(oldName, function);
@@ -254,7 +263,7 @@ public class LookupTableFunction extends AbstractFunction {
     } else if ("setTableEntry".equalsIgnoreCase(function)) {
 
       checkTrusted(function);
-      checkNumberOfParameters("setTableEntry", params, 3, 4);
+      FunctionUtil.checkNumberParam("setTableEntry", params, 3, 4);
       String name = params.get(0).toString();
       String roll = params.get(1).toString();
       String result = params.get(2).toString();
@@ -280,9 +289,33 @@ public class LookupTableFunction extends AbstractFunction {
         }
       MapTool.serverCommand().updateCampaign(MapTool.getCampaign().getCampaignProperties());
       return 1;
+    } else if ("getTableEntry".equalsIgnoreCase(function)) {
 
-    } else {
-      checkNumberOfParameters(function, params, 1, 3);
+      FunctionUtil.checkNumberParam(function, params, 2, 2);
+      String name = params.get(0).toString();
+      LookupTable lookupTable = getMaptoolTable(name, function);
+      String roll = params.get(1).toString();
+      LookupEntry entry = lookupTable.getLookup(roll);
+      if (entry == null) return ""; // no entry was found
+      int rollInt = Integer.parseInt(roll);
+      if (rollInt < entry.getMin() || rollInt > entry.getMax())
+        return ""; // entry was found but doesn't match
+
+      JSONObject entryDetails = new JSONObject();
+      entryDetails.put("min", entry.getMin());
+      entryDetails.put("max", entry.getMax());
+      entryDetails.put("value", entry.getValue());
+
+      MD5Key imageId = entry.getImageId();
+      if (imageId != null) {
+        entryDetails.put("assetid", "asset://" + imageId.toString());
+      } else {
+        entryDetails.put("assetid", "");
+      }
+      return entryDetails;
+
+    } else { // if tbl, table, tblImage or tableImage
+      FunctionUtil.checkNumberParam(function, params, 1, 3);
       String name = params.get(0).toString();
 
       String roll = null;
@@ -315,11 +348,10 @@ public class LookupTableFunction extends AbstractFunction {
         } catch (NumberFormatException nfe) {
           return val;
         }
-      } else { // We want the image URI
+      } else { // We want the image URI through tblImage or tableImage
 
         if (result.getImageId() == null) {
-          throw new ParserException(
-              I18N.getText("macro.function.LookupTableFunctions.noImage", function, name));
+          return ""; // empty string if no image is found (#538)
         }
 
         BigDecimal size = null;
@@ -341,30 +373,6 @@ public class LookupTableFunction extends AbstractFunction {
         }
         return assetId.toString();
       }
-    }
-  }
-
-  /**
-   * Checks that the number of objects in the list <code>parameters</code> is within given bounds
-   * (inclusive). Throws a <code>ParserException</code> if the check fails.
-   *
-   * @param functionName this is used in the exception message
-   * @param parameters a list of parameters
-   * @param min the minimum amount of parameters (inclusive)
-   * @param max the maximum amount of parameters (inclusive)
-   * @throws ParserException if there were more or less parameters than allowed
-   */
-  private void checkNumberOfParameters(
-      String functionName, List<Object> parameters, int min, int max) throws ParserException {
-    int numberOfParameters = parameters.size();
-    if (numberOfParameters < min) {
-      throw new ParserException(
-          I18N.getText(
-              "macro.function.general.notEnoughParam", functionName, min, numberOfParameters));
-    } else if (numberOfParameters > max) {
-      throw new ParserException(
-          I18N.getText(
-              "macro.function.general.tooManyParam", functionName, max, numberOfParameters));
     }
   }
 
@@ -435,9 +443,13 @@ public class LookupTableFunction extends AbstractFunction {
    * "asset://" urls.
    *
    * @param assetString String containing either an asset ID or asset URL.
-   * @return MD5Key asset id.
+   * @return MD5Key asset id or null
    */
   private MD5Key getAssetFromString(String assetString) {
+    if (assetString.isEmpty()) {
+      return null;
+    }
+
     if (assetString.toLowerCase().startsWith("asset://")) {
       String id = assetString.substring(8);
       return new MD5Key(id);

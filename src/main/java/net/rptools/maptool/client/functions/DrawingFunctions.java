@@ -41,6 +41,7 @@ import net.rptools.maptool.model.drawing.DrawnElement;
 import net.rptools.maptool.model.drawing.LineSegment;
 import net.rptools.maptool.model.drawing.Pen;
 import net.rptools.maptool.model.drawing.ShapeDrawable;
+import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
 import net.rptools.parser.function.AbstractFunction;
@@ -64,7 +65,6 @@ public class DrawingFunctions extends AbstractFunction {
    *
    * @param map the zone that should contain the drawing
    * @param guid the id of the drawing.
-   * @throws ParserException if there were more or less parameters than allowed
    */
   protected void bringToFront(Zone map, GUID guid) {
     List<DrawnElement> drawableList = map.getAllDrawnElements();
@@ -98,30 +98,6 @@ public class DrawingFunctions extends AbstractFunction {
     MapTool.getFrame().updateDrawTree();
     MapTool.getFrame().refresh();
     return layer;
-  }
-
-  /**
-   * Checks that the number of objects in the list <code>parameters</code> is within given bounds
-   * (inclusive). Throws a <code>ParserException</code> if the check fails.
-   *
-   * @param functionName this is used in the exception message
-   * @param parameters a list of parameters
-   * @param min the minimum amount of parameters (inclusive)
-   * @param max the maximum amount of parameters (inclusive)
-   * @throws ParserException if there were more or less parameters than allowed
-   */
-  protected void checkNumberOfParameters(
-      String functionName, List<Object> parameters, int min, int max) throws ParserException {
-    int numberOfParameters = parameters.size();
-    if (numberOfParameters < min) {
-      throw new ParserException(
-          I18N.getText(
-              "macro.function.general.notEnoughParam", functionName, min, numberOfParameters));
-    } else if (numberOfParameters > max) {
-      throw new ParserException(
-          I18N.getText(
-              "macro.function.general.tooManyParam", functionName, max, numberOfParameters));
-    }
   }
 
   /**
@@ -404,7 +380,7 @@ public class DrawingFunctions extends AbstractFunction {
   protected boolean parseBoolean(String functionName, List<Object> args, int param)
       throws ParserException {
     try {
-      return AbstractTokenAccessorFunction.getBooleanValue(args.get(param));
+      return FunctionUtil.getBooleanValue(args.get(param));
     } catch (NumberFormatException ne) {
       throw new ParserException(
           I18N.getText(

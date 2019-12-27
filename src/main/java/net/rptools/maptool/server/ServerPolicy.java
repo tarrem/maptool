@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.ui.tokenpanel.InitiativePanel;
 import net.rptools.maptool.client.walker.WalkerMetric;
 import net.sf.json.JSONObject;
 
@@ -29,6 +28,7 @@ public class ServerPolicy {
   private boolean strictTokenMovement;
   private boolean isMovementLocked;
   private boolean playersCanRevealVision;
+  private boolean gmRevealsVisionForUnownedTokens;
   private boolean useIndividualViews;
   private boolean restrictedImpersonation;
   private boolean playersReceiveCampaignMacros;
@@ -72,6 +72,14 @@ public class ServerPolicy {
 
   public boolean getPlayersCanRevealVision() {
     return playersCanRevealVision;
+  }
+
+  public void setGmRevealsVisionForUnownedTokens(boolean flag) {
+    gmRevealsVisionForUnownedTokens = flag;
+  }
+
+  public boolean getGmRevealsVisionForUnownedTokens() {
+    return gmRevealsVisionForUnownedTokens;
   }
 
   public void setAutoRevealOnMovement(boolean revealFlag) {
@@ -120,7 +128,7 @@ public class ServerPolicy {
    * Gets if ToolTips should be used instead of extended output for [ ] rolls with no formatting
    * option.
    *
-   * @returns true if tool tips should be used.
+   * @return true if tool tips should be used.
    */
   public boolean getUseToolTipsForDefaultRollFormat() {
     return useToolTipsForDefaultRollFormat;
@@ -178,11 +186,17 @@ public class ServerPolicy {
     sinfo.put(
         "tooltips for default roll format",
         getUseToolTipsForDefaultRollFormat() ? BigDecimal.ONE : BigDecimal.ZERO);
+    sinfo.put(
+        "GM reveals vision for unowned tokens",
+        getGmRevealsVisionForUnownedTokens() ? BigDecimal.ONE : BigDecimal.ZERO);
     sinfo.put("players can reveal", getPlayersCanRevealVision() ? BigDecimal.ONE : BigDecimal.ZERO);
+    sinfo.put(
+        "auto reveal on movement", isAutoRevealOnMovement() ? BigDecimal.ONE : BigDecimal.ZERO);
     sinfo.put("movement locked", isMovementLocked() ? BigDecimal.ONE : BigDecimal.ZERO);
     sinfo.put(
         "restricted impersonation", isRestrictedImpersonation() ? BigDecimal.ONE : BigDecimal.ZERO);
     sinfo.put("individual views", isUseIndividualViews() ? BigDecimal.ONE : BigDecimal.ZERO);
+    sinfo.put("individual fow", isUseIndividualFOW() ? BigDecimal.ONE : BigDecimal.ZERO);
     sinfo.put(
         "strict token management", useStrictTokenManagement() ? BigDecimal.ONE : BigDecimal.ZERO);
     sinfo.put(
@@ -197,13 +211,8 @@ public class ServerPolicy {
     sinfo.put("timeDate", getTimeDate());
 
     sinfo.put("gm", MapTool.getGMs());
+    sinfo.put("hosting server", MapTool.isHostingServer() ? BigDecimal.ONE : BigDecimal.ZERO);
 
-    InitiativePanel ip = MapTool.getFrame().getInitiativePanel();
-    if (ip != null) {
-      sinfo.put(
-          "initiative owner permissions",
-          ip.isOwnerPermissions() ? BigDecimal.ONE : BigDecimal.ZERO);
-    }
     return JSONObject.fromObject(sinfo);
   }
 }

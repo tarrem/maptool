@@ -35,7 +35,7 @@ targetCompatibility = 10
 
 // Used by gradle assemble & run tasks
 mainClassName = 'net.rptools.maptool.client.LaunchInstructions'
-applicationDefaultJvmArgs = ["-Xss4M"]
+applicationDefaultJvmArgs = ["-Xss8M"]
 
 // Custom properties
 ext {
@@ -72,7 +72,7 @@ ext {
 
 run {
     args = [ '-v='+version ]
-    applicationDefaultJvmArgs = [ "-Xss4M", "-Djava.library.path=lib", "-Dsentry.environment=Development", "-Dfile.encoding=UTF-8", "-DMAPTOOL_DATADIR=.maptool-" + vendor ]
+    applicationDefaultJvmArgs = [ "-Xss8M", "-Djava.library.path=lib", "-Dsentry.environment=Development", "-Dfile.encoding=UTF-8", "-DMAPTOOL_DATADIR=.maptool-" + vendor ]
 
     if(System.getProperty("exec.args") != null) {
         args System.getProperty("exec.args").split()
@@ -151,9 +151,9 @@ repositories {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     // For Sentry bug reporting
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.2'
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.2'
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-1.2-api', version: '2.11.2'	// Bridges v1 to v2 for other code in other libs
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.12.0'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.12.1'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-1.2-api', version: '2.12.0'	// Bridges v1 to v2 for other code in other libs
 
     implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
     implementation group: 'commons-logging', name: 'commons-logging', version: '1.2'
@@ -164,7 +164,11 @@ dependencies {
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.1' // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
 
     implementation 'net.java.abeille:abeille-formsrt:2.0'
-    implementation 'net.rptools.clientserver:clientserver:1.4.0.+'
+
+    // sourceControl gitRepository currently not producing classpath for Eclipse
+    // using jitpack.io for now
+    // implementation 'net.rptools.clientserver:clientserver:1.4.0.+'
+    implementation 'com.github.RPTools:clientserver:1.4.0.0'
     implementation 'org.hibernate:antlr:2.7.5H3'
 
     implementation 'commons-beanutils:commons-beanutils-core:1.8.3'
@@ -177,7 +181,7 @@ dependencies {
     implementation 'net.rptools.decktool:decktool:1.0.b1'
 
     implementation 'net.rptools.maptool.resource:maptool.resource:1.0.b18'
-    implementation 'net.rptools.parser:parser:1.4.0.+'
+    implementation 'com.github.RPTools:parser:1.5.5'
 
     implementation 'jide-common:jide-common:3.7.6'
     implementation 'jide-components:jide-components:3.7.6'
@@ -215,6 +219,8 @@ dependencies {
     implementation 'yasb:yasb:0.2-21012007'
     implementation 'de.muntjak.tinylookandfeel:tinylaf-nocp:1.4.0'
 
+    implementation 'com.jayway.jsonpath:json-path:2.4.0'
+
     // For PDF image extraction
     implementation 'org.apache.pdfbox:pdfbox:2.0.10'
     implementation 'org.bouncycastle:bcmail-jdk15on:1.59'								// To decrypt passworded/secured pdf's
@@ -229,7 +235,7 @@ dependencies {
     // For syntax highlighting in macro editor
     implementation group: 'com.fifesoft', name: 'rsyntaxtextarea', version: '3.0.2'		// https://mvnrepository.com/artifact/com.fifesoft/rsyntaxtextarea
     implementation group: 'com.fifesoft', name: 'rstaui', version: '3.0.0'				// https://mvnrepository.com/artifact/com.fifesoft/rstaui
-    implementation group: 'com.fifesoft', name: 'autocomplete', version: '3.0.0'		// https://mvnrepository.com/artifact/com.fifesoft/autocomplete
+    implementation group: 'com.fifesoft', name: 'autocomplete', version: '3.0.2'		// https://mvnrepository.com/artifact/com.fifesoft/autocomplete
 
     // For simple xml work in Hero Lab integration
     implementation group: 'com.jcabi', name: 'jcabi-xml', version: '0.18.1'				// https://mvnrepository.com/artifact/com.jcabi/jcabi-xml
@@ -258,7 +264,12 @@ dependencies {
     // sourceControl gitRepository currently not producing classpath for Eclipse
     // using jitpack.io for now
     // compile ('net.rptools.dicelib:dicelib:1.5.2')
-    implementation 'com.github.RPTools:dicelib:1.5.3'
+    implementation 'com.github.RPTools:dicelib:1.5.5'
+
+
+    // Noise Generator
+    implementation 'com.github.cwisniew:NoiseLib:1.0.0-rc3'
+
 }
 
 
@@ -376,7 +387,7 @@ task deploy(dependsOn: [clean, displayGitInfo, uberJar, copyPackageExtras, prepa
                 "-Bemail=maptool@rptools.net",
                 "-BuserJvmOptions=-DMAPTOOL_DATADIR\\==.maptool-" + vendor,
                 "-BuserJvmOptions=-Dfile.encoding\\==UTF-8",
-                "-BuserJvmOptions=-Xss=4M"
+                "-BuserJvmOptions=-Xss=8M"
 
                 println commandLine
         }

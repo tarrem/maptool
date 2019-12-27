@@ -18,9 +18,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -65,6 +67,7 @@ public class MapToolLineParser {
               CurrentInitiativeFunction.getInstance(),
               DefineMacroFunction.getInstance(),
               EvalMacroFunctions.getInstance(),
+              ExecFunction.getInstance(),
               FindTokenFunctions.getInstance(),
               HasImpersonated.getInstance(),
               InitiativeRoundFunction.getInstance(),
@@ -81,12 +84,12 @@ public class MapToolLineParser {
               PlayerFunctions.getInstance(),
               RemoveAllFromInitiativeFunction.getInstance(),
               ReturnFunction.getInstance(),
+              SoundFunctions.getInstance(),
               StateImageFunction.getInstance(),
               StringFunctions.getInstance(),
               StrListFunctions.getInstance(),
               StrPropFunctions.getInstance(),
               SwitchTokenFunction.getInstance(),
-              TokenAddToInitiativeFunction.getInstance(),
               TokenBarFunction.getInstance(),
               TokenCopyDeleteFunctions.getInstance(),
               TokenGMNameFunction.getInstance(),
@@ -217,11 +220,19 @@ public class MapToolLineParser {
     return mapToolParserFunctions;
   }
 
-  public List<String> listAllMacroFunctions() {
-    List<String> functionList = new ArrayList<String>();
+  public Map<String, String> listAllMacroFunctions() {
+    Map<String, String> functionList = new HashMap<String, String>();
 
     for (Function function : getMacroFunctions()) {
-      functionList.addAll(Arrays.asList(function.getAliases()));
+      if (function instanceof AdditionalFunctionDescription) {
+        for (String alias : Arrays.asList(function.getAliases())) {
+          functionList.put(alias, function.getClass().getName());
+          //          log.info(alias + " : " + function.getClass().getName());
+        }
+      } else {
+        for (String alias : Arrays.asList(function.getAliases()))
+          functionList.put(alias, function.getClass().getName());
+      }
     }
 
     return functionList;
@@ -1476,8 +1487,7 @@ public class MapToolLineParser {
         b.append(expression);
         log.debug(b.toString());
       }
-      Result res =
-          createParser(resolver, tokenInContext == null ? false : true).evaluate(expression);
+      Result res = createParser(resolver, tokenInContext != null).evaluate(expression);
       rolled.addAll(res.getRolled());
       newRolls.addAll(res.getRolled());
 
@@ -1614,6 +1624,19 @@ public class MapToolLineParser {
       }
       macroBody = mbp.getCommand();
       macroContext = new MapToolMacroContext(macroName, "campaign", !mbp.getAllowPlayerEdits());
+    } else if (macroLocation.equalsIgnoreCase("Gm")) {
+      MacroButtonProperties mbp = null;
+      for (MacroButtonProperties m : MapTool.getCampaign().getGmMacroButtonPropertiesArray()) {
+        if (m.getLabel().equals(macroName)) {
+          mbp = m;
+          break;
+        }
+      }
+      if (mbp == null) {
+        throw new ParserException(I18N.getText("lineParser.unknownCampaignMacro", macroName));
+      }
+      macroBody = mbp.getCommand();
+      macroContext = new MapToolMacroContext(macroName, "Gm", MapTool.getPlayer().isGM());
     } else if (macroLocation.equalsIgnoreCase("GLOBAL")) {
       macroContext = new MapToolMacroContext(macroName, "global", MapTool.getPlayer().isGM());
       MacroButtonProperties mbp = null;
@@ -1638,7 +1661,6 @@ public class MapToolLineParser {
       macroContext = new MapToolMacroContext(macroName, macroLocation, secure);
 
       MacroButtonProperties mbp = token.getMacro(macroName, false);
-      log.info(macroName + "::" + macroLocation + "::" + mbp.getToolTip());
     }
 
     // Error if macro not found
@@ -1732,6 +1754,28 @@ public class MapToolLineParser {
       }
     }
     return true;
+  }
+
+  /**
+   * Run a block of text as a macro.
+   *
+   * @param tokenInContext the token in context.
+   * @param macroBody the macro text to run.
+   * @param contextName the name of the macro context to use.
+   * @param contextSource the source of the macro block.
+   * @param trusted is the context trusted or not.
+   * @return the macro output.
+   */
+  public String runMacroBlock(
+      Token tokenInContext,
+      String macroBody,
+      String contextName,
+      String contextSource,
+      boolean trusted)
+      throws ParserException {
+    MapToolVariableResolver resolver = new MapToolVariableResolver(tokenInContext);
+    MapToolMacroContext context = new MapToolMacroContext(contextName, contextSource, trusted);
+    return runMacroBlock(resolver, tokenInContext, macroBody, context);
   }
 
   /** Executes a string as a block of macro code. */
@@ -1898,7 +1942,8 @@ public class MapToolLineParser {
     return retval;
   }
 
-  private ExpressionParser createParser(VariableResolver resolver, boolean hasTokenInContext) {
+  public static ExpressionParser createParser(
+      VariableResolver resolver, boolean hasTokenInContext) {
     ExpressionParser parser = new ExpressionParser(resolver);
     parser.getParser().addFunctions(mapToolParserFunctions);
     return parser;

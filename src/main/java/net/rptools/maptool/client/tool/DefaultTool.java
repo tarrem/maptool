@@ -14,14 +14,11 @@
  */
 package net.rptools.maptool.client.tool;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.dnd.DragSource;
+import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.util.Set;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import net.rptools.lib.swing.SwingUtil;
 import net.rptools.maptool.client.AppState;
 import net.rptools.maptool.client.AppUtil;
@@ -43,6 +40,7 @@ public abstract class DefaultTool extends Tool
   private boolean isDraggingMap;
   private int dragStartX;
   private int dragStartY;
+  private int dragThreshold = DragSource.getDragThreshold();
 
   protected int mouseX;
   protected int mouseY;
@@ -154,10 +152,13 @@ public abstract class DefaultTool extends Tool
     }
     // MAP MOVEMENT
     if (isRightMouseButton(e)) {
-      isDraggingMap = true;
 
       mapDX += mX - dragStartX;
       mapDY += mY - dragStartY;
+
+      if (mapDX * mapDX + mapDY * mapDY > dragThreshold * dragThreshold) {
+        isDraggingMap = true;
+      }
 
       dragStartX = mX;
       dragStartY = mY;

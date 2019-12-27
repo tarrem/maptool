@@ -30,10 +30,12 @@ import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.drawing.AbstractDrawing;
 import net.rptools.maptool.model.drawing.DrawablesGroup;
 import net.rptools.maptool.model.drawing.DrawnElement;
+import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
 import net.sf.ezmorph.bean.MorphDynaBean;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 public class DrawingMiscFunctions extends DrawingFunctions {
   private static final DrawingMiscFunctions instance = new DrawingMiscFunctions();
@@ -61,20 +63,20 @@ public class DrawingMiscFunctions extends DrawingFunctions {
     String drawing = parameters.get(1).toString();
     Zone map = getNamedMap(functionName, mapName).getZone();
     if ("movedOverDrawing".equalsIgnoreCase(functionName)) {
-      checkNumberOfParameters(functionName, parameters, 3, 3);
+      FunctionUtil.checkNumberParam(functionName, parameters, 3, 3);
       String jsonPath = parameters.get(2).toString();
       GUID guid = getGUID(functionName, drawing);
       DrawnElement de = getDrawnElement(functionName, map, guid);
       return getCrossedPoints(map, de, jsonPath);
     } else if ("findDrawings".equalsIgnoreCase(functionName)) {
-      checkNumberOfParameters(functionName, parameters, 2, 3);
+      FunctionUtil.checkNumberParam(functionName, parameters, 2, 3);
       List<DrawnElement> drawableList = map.getAllDrawnElements();
       List<String> drawingList = findDrawings(drawableList, drawing);
       String delim = parameters.size() > 2 ? parameters.get(2).toString() : ",";
       if ("json".equalsIgnoreCase(delim)) return JSONArray.fromObject(drawingList);
       else return StringFunctions.getInstance().join(drawingList, delim);
     } else {
-      checkNumberOfParameters(functionName, parameters, 2, 2);
+      FunctionUtil.checkNumberParam(functionName, parameters, 2, 2);
       GUID guid = getGUID(functionName, drawing);
       if ("refreshDrawing".equalsIgnoreCase(functionName)) {
         DrawnElement de = getDrawnElement(functionName, map, guid);
@@ -92,9 +94,9 @@ public class DrawingMiscFunctions extends DrawingFunctions {
     return null;
   }
 
-  private Object getCrossedPoints(final Zone map, final DrawnElement de, final String pathString) {
-    List<Map<String, Integer>> pathPoints = convertJSONStringToList(pathString);
-    List<Map<String, Integer>> returnPoints = new ArrayList<Map<String, Integer>>();
+  private JSONArray getCrossedPoints(final Zone map, final DrawnElement de, final String pathStr) {
+    List<Map<String, Integer>> pathPoints = convertJSONStringToList(pathStr);
+    JSONArray returnPoints = new JSONArray();
     Area a = de.getDrawable().getArea();
     int cnt = 0;
     Point previousPoint = new Point();
@@ -106,8 +108,8 @@ public class DrawingMiscFunctions extends DrawingFunctions {
         Area lineArea = new Area(stroke.createStrokedShape(l2d));
         lineArea.intersect(a);
         if (!lineArea.isEmpty()) {
-          Map<String, Integer> firstPoint = new HashMap<String, Integer>();
-          Map<String, Integer> secondPoint = new HashMap<String, Integer>();
+          JSONObject firstPoint = new JSONObject();
+          JSONObject secondPoint = new JSONObject();
           firstPoint.put("x1", (int) previousPoint.getX());
           firstPoint.put("y1", (int) previousPoint.getY());
           secondPoint.put("x2", (int) currentPoint.getX());

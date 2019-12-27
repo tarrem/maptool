@@ -14,23 +14,7 @@
  */
 package net.rptools.maptool.client.tool;
 
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-import java.awt.TexturePaint;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -46,59 +30,26 @@ import java.io.IOException;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.text.BreakIterator;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
 import net.rptools.lib.swing.SwingUtil;
-import net.rptools.maptool.client.AppActions;
-import net.rptools.maptool.client.AppConstants;
-import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.AppStyle;
-import net.rptools.maptool.client.AppUtil;
-import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.MapToolVariableResolver;
-import net.rptools.maptool.client.ScreenPoint;
+import net.rptools.maptool.client.*;
 import net.rptools.maptool.client.swing.HTMLPanelRenderer;
 import net.rptools.maptool.client.tool.LayerSelectionDialog.LayerSelectionListener;
-import net.rptools.maptool.client.ui.StampPopupMenu;
-import net.rptools.maptool.client.ui.TokenLocation;
-import net.rptools.maptool.client.ui.TokenPopupMenu;
-import net.rptools.maptool.client.ui.Tool;
-import net.rptools.maptool.client.ui.Toolbox;
+import net.rptools.maptool.client.ui.*;
 import net.rptools.maptool.client.ui.token.EditTokenDialog;
 import net.rptools.maptool.client.ui.zone.FogUtil;
 import net.rptools.maptool.client.ui.zone.PlayerView;
 import net.rptools.maptool.client.ui.zone.ZoneOverlay;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
-import net.rptools.maptool.model.CellPoint;
-import net.rptools.maptool.model.ExposedAreaMetaData;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Grid;
-import net.rptools.maptool.model.MovementKey;
-import net.rptools.maptool.model.Player;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Player.Role;
-import net.rptools.maptool.model.Pointer;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.TokenFootprint;
-import net.rptools.maptool.model.TokenProperty;
-import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.model.Zone.VisionType;
-import net.rptools.maptool.model.ZonePoint;
 import net.rptools.maptool.util.GraphicsUtil;
 import net.rptools.maptool.util.ImageManager;
 import net.rptools.maptool.util.StringUtil;
@@ -150,10 +101,10 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
   private static int STATSHEET_EXTERIOR_PADDING = 5;
 
   // Offset from token's X,Y when dragging. Values are in zone coordinates.
-  private int dragOffsetX;
-  private int dragOffsetY;
-  private int dragStartX;
-  private int dragStartY;
+  private int dragOffsetX = 0;
+  private int dragOffsetY = 0;
+  private int dragStartX = 0;
+  private int dragStartY = 0;
 
   public PointerTool() {
     try {
@@ -291,6 +242,7 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
     isDraggingToken = true;
   }
 
+  /** Complete the drag of the token, and expose FOW */
   public void stopTokenDrag() {
     renderer.commitMoveSelectionSet(tokenBeingDragged.getId()); // TODO: figure out a better way
     isDraggingToken = false;
@@ -302,12 +254,30 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
     exposeFoW(null);
   }
 
+  /**
+   * Expose the FoW at a ZonePoint, or at the visible area, for the selected token
+   *
+   * @param p the ZonePoint to expose, or a null if exposing visible area and last path
+   */
   public void exposeFoW(ZonePoint p) {
     // if has fog(required)
     // and ((isGM with pref set) OR serverPolicy allows auto reveal by players)
-    if (renderer.getZone().hasFog()
-        && ((AppPreferences.getAutoRevealVisionOnGMMovement() && MapTool.getPlayer().isGM())
-            || MapTool.getServerPolicy().isAutoRevealOnMovement())) {
+
+    String name = MapTool.getPlayer().getName();
+    boolean isGM = MapTool.getPlayer().isGM();
+    boolean ownerReveal; // if true, reveal FoW if current player owns the token.
+    boolean hasOwnerReveal; // if true, reveal FoW if token has an owner.
+    boolean noOwnerReveal; // if true, reveal FoW if token has no owners.
+
+    if (MapTool.isPersonalServer()) {
+      ownerReveal =
+          hasOwnerReveal = noOwnerReveal = AppPreferences.getAutoRevealVisionOnGMMovement();
+    } else {
+      ownerReveal = MapTool.getServerPolicy().isAutoRevealOnMovement();
+      hasOwnerReveal = isGM && MapTool.getServerPolicy().isAutoRevealOnMovement();
+      noOwnerReveal = isGM && MapTool.getServerPolicy().getGmRevealsVisionForUnownedTokens();
+    }
+    if (renderer.getZone().hasFog() && (ownerReveal || hasOwnerReveal || noOwnerReveal)) {
       Set<GUID> exposeSet = new HashSet<GUID>();
       Zone zone = renderer.getZone();
       for (GUID tokenGUID : renderer.getOwnedTokens(renderer.getSelectedTokenSet())) {
@@ -315,11 +285,9 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
         if (token == null) {
           continue;
         }
-        // Jamz: Changed to allow NPC FoW
-        // if (token.getType() == Token.Type.PC) {
-        if (MapTool.getPlayer().isGM() || token.isOwner(MapTool.getPlayer().getName())) {
-          exposeSet.add(tokenGUID);
-        }
+        if (ownerReveal && token.isOwner(name)) exposeSet.add(tokenGUID);
+        else if (hasOwnerReveal && token.hasOwners()) exposeSet.add(tokenGUID);
+        else if (noOwnerReveal && !token.hasOwners()) exposeSet.add(tokenGUID);
       }
 
       if (p != null) {
@@ -561,7 +529,7 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
         ZonePoint pos = new ScreenPoint(e.getX(), e.getY()).convertToZone(renderer);
         Rectangle tokenBounds = token.getBounds(renderer.getZone());
 
-        if (token.isSnapToGrid()) {
+        if (token.isSnapToGrid() && getZone().getGrid().getCapabilities().isSnapToGridSupported()) {
           dragOffsetX = (pos.x - tokenBounds.x) - (tokenBounds.width / 2);
           dragOffsetY = (pos.y - tokenBounds.y) - (tokenBounds.height / 2);
         } else {
@@ -834,16 +802,28 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
         TokenFootprint tf = tokenUnderMouse.getFootprint(grid);
         Rectangle r = tf.getBounds(grid);
         ZonePoint last = renderer.getLastWaypoint(tokenUnderMouse.getId());
-        if (last == null)
-          last =
-              new ZonePoint(
-                  tokenUnderMouse.getX() + r.width / 2, tokenUnderMouse.getY() + r.height / 2);
-        ZonePoint zp = new ScreenPoint(mouseX, mouseY).convertToZone(renderer);
-        if (tokenUnderMouse.isSnapToGrid() && grid.getCapabilities().isSnapToGridSupported()) {
-          zp.translate(-r.width / 2, -r.height / 2);
-          last.translate(-r.width / 2, -r.height / 2);
+        if (last == null) {
+          // This makes no sense to me. Why create a fake last point that is
+          // half the token width away from the current point? (Phil)
+          // last =  new ZonePoint(
+          //        tokenUnderMouse.getX() + r.width / 2,
+          //        tokenUnderMouse.getY() + r.height / 2);
+
+          // Just make a last ZP that is the same.
+          last = new ScreenPoint(mouseX, mouseY).convertToZone(renderer);
         }
-        zp.translate(-dragOffsetX, -dragOffsetY);
+        ZonePoint zp = new ScreenPoint(mouseX, mouseY).convertToZone(renderer);
+        // These lines were causing tokens to end up in the wrong grid cell in
+        // relation to the the mouse location.
+        // if (tokenUnderMouse.isSnapToGrid() && grid.getCapabilities().isSnapToGridSupported()) {
+        //          zp.translate(-r.width / 2, -r.height / 2);
+        //          last.translate(-r.width / 2, -r.height / 2);
+        // }
+        //        zp.translate(-dragOffsetX, -dragOffsetY);
+
+        // Now the dx/dy are calculated on Zone Points that haven't been
+        // translated for drag offset or for snapping. That is being done in
+        // handleDragToken().
         int dx = zp.x - last.x;
         int dy = zp.y - last.y;
         handleDragToken(zp, dx, dy);
@@ -878,6 +858,7 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
         }
         startTokenDrag(tokenUnderMouse);
         isDraggingToken = true;
+        if (AppPreferences.getHideMousePointerWhileDragging()) SwingUtil.hidePointer(renderer);
       }
       return;
     }
@@ -898,6 +879,20 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
    */
   public boolean handleDragToken(ZonePoint zonePoint, int dx, int dy) {
     Grid grid = renderer.getZone().getGrid();
+    // For snapped dragging
+    if (tokenBeingDragged.isSnapToGrid()
+        && grid.getCapabilities().isSnapToGridSupported()
+        && AppPreferences.getTokensSnapWhileDragging()) {
+      // Convert the zone point to a cell point and back to force the snap to grid on drag
+      zonePoint = grid.convert(grid.convert(zonePoint));
+    } else {
+      // Non-snapped while dragging.  Snaps when mouse-button released.
+      if (!(grid instanceof SquareGrid) || !tokenBeingDragged.isSnapToGrid()) {
+        zonePoint.translate(-dragOffsetX, -dragOffsetY);
+      }
+    }
+    CellPoint cellUnderMouse = grid.convert(zonePoint);
+    MapTool.getFrame().getCoordinateStatusBar().update(cellUnderMouse.x, cellUnderMouse.y);
     // Don't bother if there isn't any movement
     if (!renderer.hasMoveSelectionSetMoved(tokenBeingDragged.getId(), zonePoint)) {
       return false;
@@ -1048,7 +1043,7 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
    *
    * <p>
    *
-   * <table>
+   * <table summary="">
    * <tr>
    * <td>Meta R
    * <td>Select the FacingTool (to allow rotating with the left/right arrows)
@@ -1085,7 +1080,7 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
    * <tr>
    * <td>NumPad digits
    * <td>Move token (specifics based on the grid type are not implemented yet):<br>
-   * <table>
+   * <table summary="">
    * <tr>
    * <td>7 (up/left)
    * <td>8 (up)
@@ -1309,8 +1304,6 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
             // Only let the GM's do this
             if (MapTool.getPlayer().isGM()) {
               FogUtil.exposePCArea(renderer);
-              // Jamz: This doesn't seem to be needed
-              // MapTool.serverCommand().exposePCArea(renderer.getZone().getId());
             }
           }
         });
@@ -1952,15 +1945,22 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
 
   private String createHoverNote(Token marker) {
     boolean showGMNotes = MapTool.getPlayer().isGM() && !StringUtil.isEmpty(marker.getGMNotes());
+    boolean showNotes = !StringUtil.isEmpty(marker.getNotes());
 
     StringBuilder builder = new StringBuilder();
 
     if (marker.getPortraitImage() != null) {
       builder.append("<table><tr><td valign=top>");
     }
-    if (!StringUtil.isEmpty(marker.getNotes())) {
-      builder.append("<b><span class='title'>").append(marker.getName()).append("</span></b><br>");
-      builder.append(markerUnderMouse.getNotes());
+    if (showGMNotes || showNotes) {
+      builder.append("<b><span class='title'>").append(marker.getName());
+      if (MapTool.getPlayer().isGM() && !StringUtil.isEmpty(marker.getGMName())) {
+        builder.append(" (").append(marker.getGMName()).append(")");
+      }
+      builder.append("</span></b><br>");
+    }
+    if (showNotes) {
+      builder.append(marker.getNotes());
       // add a gap between player and gmNotes
       if (showGMNotes) {
         builder.append("\n\n");
@@ -1968,9 +1968,6 @@ public class PointerTool extends DefaultTool implements ZoneOverlay {
     }
     if (showGMNotes) {
       builder.append("<b><span class='title'>GM Notes");
-      if (!StringUtil.isEmpty(marker.getGMName())) {
-        builder.append(" - ").append(marker.getGMName());
-      }
       builder.append("</span></b><br>");
       builder.append(marker.getGMNotes());
     }

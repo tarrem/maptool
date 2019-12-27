@@ -41,6 +41,7 @@ public interface ServerCommand {
     // @formatter:off
     bootPlayer,
     setCampaign,
+    setCampaignName,
     getZone,
     putZone,
     removeZone,
@@ -49,11 +50,14 @@ public interface ServerCommand {
     removeAsset,
     putToken,
     removeToken,
+    updateTokenProperty,
     draw,
     updateDrawing,
     clearAllDrawings,
     setZoneGridSize,
     message,
+    execLink,
+    execFunction,
     undoDraw,
     showPointer,
     movePointer,
@@ -83,6 +87,7 @@ public interface ServerCommand {
     updateTokenInitiative,
     setVisionType,
     updateCampaignMacros,
+    updateGmMacros,
     setTokenLocation, // NOTE: This is to support third party token placement and shouldn't be
     // depended on for general purpose token movement
     setLiveTypingLabel, // Experimental
@@ -116,6 +121,8 @@ public interface ServerCommand {
 
   public void setCampaign(Campaign campaign);
 
+  public void setCampaignName(String name);
+
   public void getZone(GUID zoneGUID);
 
   public void putZone(Zone zone);
@@ -134,6 +141,11 @@ public interface ServerCommand {
 
   public void removeToken(GUID zoneGUID, GUID tokenGUID);
 
+  public void updateTokenProperty(
+      GUID zoneGUID, GUID tokenGUID, Token.Update update, Object[] parameters);
+
+  public void updateTokenProperty(Token token, Token.Update update, Object... parameters);
+
   public void putLabel(GUID zoneGUID, Label label);
 
   public void removeLabel(GUID zoneGUID, GUID labelGUID);
@@ -147,6 +159,10 @@ public interface ServerCommand {
   public void setZoneGridSize(GUID zoneGUID, int xOffset, int yOffset, int size, int color);
 
   public void message(TextMessage message);
+
+  public void execFunction(String target, String source, String functionName, List<Object> args);
+
+  public void execLink(String link, String target, String source);
 
   public void showPointer(String player, Pointer pointer);
 
@@ -187,6 +203,8 @@ public interface ServerCommand {
 
   public void updateCampaignMacros(List<MacroButtonProperties> properties);
 
+  public void updateGmMacros(List<MacroButtonProperties> properties);
+
   public void setBoard(GUID zoneGUID, MD5Key mapAsset, int X, int Y);
 
   public void setLiveTypingLabel(String name, boolean show);
@@ -198,5 +216,5 @@ public interface ServerCommand {
   public void updateExposedAreaMeta(
       GUID zoneGUID, GUID tokenExposedAreaGUID, ExposedAreaMetaData meta);
 
-  public void clearExposedArea(GUID zoneGUID);
+  public void clearExposedArea(GUID zoneGUID, boolean globalOnly);
 }

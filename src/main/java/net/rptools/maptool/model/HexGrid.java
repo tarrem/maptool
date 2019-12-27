@@ -24,6 +24,7 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import net.rptools.lib.image.ImageUtil;
@@ -46,6 +47,11 @@ public abstract class HexGrid extends Grid {
   /** One DirectionCalculator object is shared by all instances of this hex grid class. */
   private static final DirectionCalculator calculator = new DirectionCalculator();
 
+  @Override
+  public boolean isHex() {
+    return true;
+  }
+
   static {
     try {
       pathHighlight =
@@ -66,7 +72,7 @@ public abstract class HexGrid extends Grid {
         }
 
         public boolean isPathLineSupported() {
-          return false;
+          return true;
         }
 
         public boolean isSecondDimensionAdjustmentSupported() {
@@ -225,10 +231,20 @@ public abstract class HexGrid extends Grid {
   }
 
   @Override
+  public Point2D.Double getCellCenter(CellPoint cell) {
+    // hex grids have their pixel xy at their center
+    ZonePoint zonePoint = convert(cell);
+    return new Point2D.Double(zonePoint.x, zonePoint.y);
+  }
+
+  @Override
   protected Area createCellShape(int size) {
     // don't use size. it has already been used to set the minorRadius
     // and will only introduce a rounding error.
-    return new Area(createShape(minorRadius, edgeProjection, edgeLength));
+    Area a = new Area(createShape(minorRadius, edgeProjection, edgeLength));
+    //    System.out.println("HexGrid.createCellShape(): " + a.getBounds().width + ":" +
+    // a.getBounds().height);
+    return a;
   }
 
   @Override
@@ -289,8 +305,6 @@ public abstract class HexGrid extends Grid {
 
   @Override
   public void setSize(int size) {
-    super.setSize(size);
-
     if (hexRatio == 0) {
       hexRatio = REGULAR_HEX_RATIO;
     }
@@ -308,6 +322,9 @@ public abstract class HexGrid extends Grid {
 
     // Cell offset gives the offset to apply to the cell zone coords to draw images/tokens
     cellOffset = setCellOffset();
+    // The call to the super.setSize() must be last as it calls createCellShape()
+    // which needs the values set above.
+    super.setSize(size);
   }
 
   protected void createShape(double scale) {

@@ -22,6 +22,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import javax.swing.Action;
@@ -47,6 +49,7 @@ import net.rptools.lib.swing.SwingUtil;
 import net.rptools.lib.swing.preference.WindowPreferences;
 import net.rptools.maptool.client.AppActions;
 import net.rptools.maptool.client.AppConstants;
+import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolUtil;
@@ -421,23 +424,9 @@ public class MacroButtonDialog extends JDialog implements SearchListener {
 
     // Set the color style via Theme
     try {
-      // Theme theme =
-      // Theme.load(getClass().getResourceAsStream("/net/rptools/maptool/client/ui/syntax/themes/default.xml"));
-      // Theme theme =
-      // Theme.load(getClass().getResourceAsStream("/net/rptools/maptool/client/ui/syntax/themes/dark.xml"));
-      // Theme theme =
-      // Theme.load(getClass().getResourceAsStream("/net/rptools/maptool/client/ui/syntax/themes/eclipse.xml"));
-      // Theme theme =
-      // Theme.load(getClass().getResourceAsStream("/net/rptools/maptool/client/ui/syntax/themes/idea.xml"));
-      // Theme theme =
-      // Theme.load(getClass().getResourceAsStream("/net/rptools/maptool/client/ui/syntax/themes/vs.xml"));
-      Theme theme =
-          Theme.load(
-              getClass()
-                  .getResourceAsStream("/net/rptools/maptool/client/ui/syntax/themes/nerps.xml"));
-      // Theme theme =
-      // Theme.load(getClass().getResourceAsStream("/net/rptools/maptool/client/ui/syntax/themes/nerps-dark.xml"));
-
+      File themeFile =
+          new File(AppConstants.THEMES_DIR, AppPreferences.getDefaultMacroEditorTheme() + ".xml");
+      Theme theme = Theme.load(new FileInputStream(themeFile));
       theme.apply(macroEditorRSyntaxTextArea);
       theme.apply(getToolTipTextField());
 
@@ -546,8 +535,8 @@ public class MacroButtonDialog extends JDialog implements SearchListener {
   /**
    * Creates the slide-up panel at the bottom of the macro editor dialog panel.
    *
-   * @param key string key to lookup in the properties file (used to call {@link
-   *     I18N#getKeystroke()} and {@link I18N#getText()}
+   * @param key string key to lookup in the properties file (used to call {@link I18N#getKeystroke}
+   *     and {@link I18N#getText}
    * @param tb the toolbar that is meant to slide up
    * @return new JMenuItem containing the new {@link Action}
    */
@@ -561,6 +550,7 @@ public class MacroButtonDialog extends JDialog implements SearchListener {
   /** Is called when the dialog is about to disappear. We use it to do any menu cleanup. */
   private void destroyMenuBar() {
     JMenuBar mb = MapTool.getFrame().getJMenuBar();
+    if (mb == null) return;
     for (int i = 0; i < mb.getMenuCount(); i++) {
       JMenu menu = mb.getMenu(i);
       if (menu.getText().equalsIgnoreCase(I18N.getText("menu.edit"))) {
@@ -606,7 +596,7 @@ public class MacroButtonDialog extends JDialog implements SearchListener {
     }
 
     @Override
-    public void execute(ActionEvent e) {
+    protected void executeAction(ActionEvent e) {
       if (replaceDialog.isVisible()) {
         replaceDialog.setVisible(false);
       }
@@ -625,7 +615,7 @@ public class MacroButtonDialog extends JDialog implements SearchListener {
     }
 
     @Override
-    public void execute(ActionEvent e) {
+    protected void executeAction(ActionEvent e) {
       if (findDialog.isVisible()) {
         findDialog.setVisible(false);
       }
@@ -641,7 +631,7 @@ public class MacroButtonDialog extends JDialog implements SearchListener {
     }
 
     @Override
-    public void execute(ActionEvent e) {
+    protected void executeAction(ActionEvent e) {
       if (findDialog.isVisible()) {
         findDialog.setVisible(false);
       }
@@ -793,6 +783,12 @@ public class MacroButtonDialog extends JDialog implements SearchListener {
       MapTool.serverCommand()
           .updateCampaignMacros(MapTool.getCampaign().getMacroButtonPropertiesArray());
       MapTool.getFrame().getCampaignPanel().reset();
+    }
+
+    if (button.getPanelClass().equals("GmPanel")) {
+      MapTool.serverCommand()
+          .updateGmMacros(MapTool.getCampaign().getGmMacroButtonPropertiesArray());
+      MapTool.getFrame().getGmPanel().reset();
     }
 
     if (closeDialog) {

@@ -116,6 +116,13 @@ public class AppPreferences {
   private static final String KEY_TOKENS_START_SNAP_TO_GRID = "newTokensStartSnapToGrid";
   private static final boolean DEFAULT_TOKENS_START_SNAP_TO_GRID = true;
 
+  private static final String KEY_TOKENS_SNAP_WHILE_DRAGGING = "tokensSnapWhileDragging";
+  private static final boolean DEFAULT_KEY_TOKENS_SNAP_WHILE_DRAGGING = true;
+
+  private static final String KEY_HIDE_MOUSE_POINTER_WHILE_DRAGGING =
+      "hideMousePointerWhileDragging";
+  private static final boolean DEFAULT_KEY_HIDE_MOUSE_POINTER_WHILE_DRAGGING = true;
+
   private static final String KEY_OBJECTS_START_SNAP_TO_GRID = "newStampsStartSnapToGrid";
   private static final boolean DEFAULT_OBJECTS_START_SNAP_TO_GRID = false;
 
@@ -167,6 +174,9 @@ public class AppPreferences {
 
   private static final String KEY_USE_ASTAR_PATHFINDING = "useAstarPathfinding";
   private static final boolean DEFAULT_USE_ASTAR_PATHFINDING = true;
+
+  private static final String MACRO_EDITOR_THEME = "macroEditorTheme";
+  private static final String DEFAULT_MACRO_EDITOR_THEME = "default";
 
   public static void setFillSelectionBox(boolean fill) {
     prefs.putBoolean(KEY_FILL_SELECTION_BOX, fill);
@@ -344,6 +354,9 @@ public class AppPreferences {
   private static final String KEY_PLAY_SYSTEM_SOUNDS = "playSystemSounds";
   private static final boolean DEFAULT_PLAY_SYSTEM_SOUNDS = true;
 
+  private static final String KEY_PLAY_STREAMS = "playStreams";
+  private static final boolean DEFAULT_PLAY_STREAMS = true;
+
   public static void setHaloLineWidth(int size) {
     prefs.putInt(KEY_HALO_LINE_WIDTH, size);
   }
@@ -412,6 +425,9 @@ public class AppPreferences {
 
   private static final String KEY_TYPING_NOTIFICATION_DURATION = "typingNotificationDuration";
   private static final int DEFAULT_TYPING_NOTIFICATION_DURATION = 5000;
+
+  private static final String KEY_FRAME_RATE_CAP = "frameRateCap";
+  private static final int DEFAULT_FRAME_RATE_CAP = 60;
 
   private static final String KEY_UPNP_DISCOVERY_TIMEOUT = "upnpDiscoveryTimeout";
   private static final int DEFAULT_UPNP_DISCOVERY_TIMEOUT = 5000;
@@ -564,8 +580,16 @@ public class AppPreferences {
     prefs.putBoolean(KEY_PLAY_SYSTEM_SOUNDS, play);
   }
 
+  public static void setPlayStreams(boolean play) {
+    prefs.putBoolean(KEY_PLAY_STREAMS, play);
+  }
+
   public static boolean getPlaySystemSounds() {
     return prefs.getBoolean(KEY_PLAY_SYSTEM_SOUNDS, DEFAULT_PLAY_SYSTEM_SOUNDS);
+  }
+
+  public static boolean getPlayStreams() {
+    return prefs.getBoolean(KEY_PLAY_STREAMS, DEFAULT_PLAY_STREAMS);
   }
 
   public static void setPlaySystemSoundsOnlyWhenNotFocused(boolean play) {
@@ -724,6 +748,23 @@ public class AppPreferences {
     return prefs.getBoolean(KEY_TOKENS_START_SNAP_TO_GRID, DEFAULT_TOKENS_START_SNAP_TO_GRID);
   }
 
+  public static void setTokensSnapWhileDragging(boolean flag) {
+    prefs.putBoolean(KEY_TOKENS_SNAP_WHILE_DRAGGING, flag);
+  }
+
+  public static boolean getTokensSnapWhileDragging() {
+    return prefs.getBoolean(KEY_TOKENS_SNAP_WHILE_DRAGGING, DEFAULT_KEY_TOKENS_SNAP_WHILE_DRAGGING);
+  }
+
+  public static void setHideMousePointerWhileDragging(boolean flag) {
+    prefs.putBoolean(KEY_HIDE_MOUSE_POINTER_WHILE_DRAGGING, flag);
+  }
+
+  public static boolean getHideMousePointerWhileDragging() {
+    return prefs.getBoolean(
+        KEY_HIDE_MOUSE_POINTER_WHILE_DRAGGING, DEFAULT_KEY_HIDE_MOUSE_POINTER_WHILE_DRAGGING);
+  }
+
   public static void setObjectsStartSnapToGrid(boolean flag) {
     prefs.putBoolean(KEY_OBJECTS_START_SNAP_TO_GRID, flag);
   }
@@ -815,6 +856,14 @@ public class AppPreferences {
 
   public static void setMovementMetric(WalkerMetric metric) {
     prefs.put(KEY_MOVEMENT_METRIC, metric.toString());
+  }
+
+  public static void setFrameRateCap(int cap) {
+    prefs.putInt(KEY_FRAME_RATE_CAP, cap);
+  }
+
+  public static int getFrameRateCap() {
+    return prefs.getInt(KEY_FRAME_RATE_CAP, DEFAULT_FRAME_RATE_CAP);
   }
 
   public static void setUpnpDiscoveryTimeout(int timeout) {
@@ -1121,5 +1170,13 @@ public class AppPreferences {
 
   public static void setUseAstarPathfinding(boolean show) {
     prefs.putBoolean(KEY_USE_ASTAR_PATHFINDING, show);
+  }
+
+  public static String getDefaultMacroEditorTheme() {
+    return prefs.get(MACRO_EDITOR_THEME, DEFAULT_MACRO_EDITOR_THEME);
+  }
+
+  public static void setDefaultMacroEditorTheme(String type) {
+    prefs.put(MACRO_EDITOR_THEME, type);
   }
 }

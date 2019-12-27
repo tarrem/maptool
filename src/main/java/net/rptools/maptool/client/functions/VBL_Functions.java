@@ -210,21 +210,13 @@ public class VBL_Functions extends AbstractFunction {
             I18N.getText(
                 "macro.function.general.notenoughparms", functionName, 1, parameters.size()));
 
-      if (!MapTool.getParser().isMacroPathTrusted())
+      if (!MapTool.getParser().isMacroTrusted())
         throw new ParserException(I18N.getText("macro.function.general.noPerm", functionName));
 
       Object jsonArea = JSONMacroFunctions.asJSON(parameters.get(0).toString().toLowerCase());
 
       if (parameters.size() == 2) {
         token = FindTokenFunctions.findToken(parameters.get(1).toString(), null);
-
-        if (token == null) {
-          throw new ParserException(
-              I18N.getText(
-                  "macro.function.general.unknownToken",
-                  "getTokenVBL",
-                  parameters.get(0).toString()));
-        }
 
         if (!(jsonArea instanceof JSONObject || jsonArea instanceof JSONArray)) {
           throw new ParserException(
@@ -236,10 +228,7 @@ public class VBL_Functions extends AbstractFunction {
       } else if (parameters.size() == 1) {
         MapToolVariableResolver res = (MapToolVariableResolver) parser.getVariableResolver();
         token = res.getTokenInContext();
-        if (token == null) {
-          throw new ParserException(
-              I18N.getText("macro.function.general.noImpersonated", "getTokenVBL"));
-        }
+
         if (!(jsonArea instanceof JSONObject || jsonArea instanceof JSONArray)) {
           throw new ParserException(
               I18N.getText(
@@ -247,6 +236,10 @@ public class VBL_Functions extends AbstractFunction {
                   jsonArea == null ? parameters.get(0).toString() : jsonArea.toString(),
                   functionName));
         }
+      }
+      if (token == null) {
+        throw new ParserException(
+            I18N.getText("macro.function.general.noImpersonated", "getTokenVBL"));
       }
 
       Area tokenVBL = new Area();
@@ -273,16 +266,17 @@ public class VBL_Functions extends AbstractFunction {
             if (alpha < 0 || alpha > 255)
               throw new ParserException(
                   I18N.getText("macro.function.input.illegalArgumentType", alpha, "0-255"));
-            System.out.println("Alpha: " + alpha);
             tokenVBL = TokenVBL.createVblArea(token, alpha);
             break;
           case NONE:
-            tokenVBL = null;
+            // Setting to null causes various Token VBL updating to be skipped
+            // during event handling. Leaving it as an empty Area fixed that.
+            // tokenVBL = null;
             break;
         }
       }
-
-      token.setVBL(tokenVBL);
+      // Replace with new VBL
+      MapTool.serverCommand().updateTokenProperty(token, Token.Update.setVBL, tokenVBL);
     }
 
     if (functionName.equals("transferVBL")) {
@@ -363,19 +357,18 @@ public class VBL_Functions extends AbstractFunction {
   /**
    * Get the required parameters needed from the JSON to draw a rectangle and render as VBL.
    *
-   * @param renderer Reference to the ZoneRenderer
+   * @param renderer Reference to the ZoneRenderer. Can be null.
    * @param vblObject The JSONObject containing all the coordinates and values to needed to draw a
    *     rectangle.
-   * @param erase Set to true to erase the rectangle in VBL, otherwise draw it
-   * @return
-   * @throws ParserException If the minimum required parameters are not present in the JSON, throw
-   *     ParserException
+   * @param erase Set to true to erase the rectangle in VBL, otherwise draw it.
+   * @return the VBL area if the renderer is null, and null otherwise.
+   * @throws ParserException If the minimum required parameters are not present in the JSON.
    */
   private Area drawRectangleVBL(ZoneRenderer renderer, JSONObject vblObject, boolean erase)
       throws ParserException {
     String funcname = "drawVBL[Rectangle]";
     // Required Parameters
-    String requiredParms[] = {"x", "y", "w", "h"};
+    String[] requiredParms = {"x", "y", "w", "h"};
     if (!jsonKeysExist(vblObject, requiredParms, funcname))
       throw new ParserException(
           I18N.getText("macro.function.general.argumentKeyTypeI", funcname, "{x,y,w,h}"));
@@ -491,9 +484,8 @@ public class VBL_Functions extends AbstractFunction {
    * @param vblObject The JSONObject containing all the coordinates and values to needed to draw a
    *     rectangle.
    * @param erase Set to true to erase the rectangle in VBL, otherwise draw it
-   * @return
-   * @throws ParserException If the minimum required parameters are not present in the JSON, throw
-   *     ParserException
+   * @return the VBL area if the renderer is null, and null otherwise.
+   * @throws ParserException If the minimum required parameters are not present in the JSON.
    */
   private Area drawPolygonVBL(ZoneRenderer renderer, JSONObject vblObject, boolean erase)
       throws ParserException {
@@ -611,9 +603,8 @@ public class VBL_Functions extends AbstractFunction {
    * @param vblObject The JSONObject containing all the coordinates and values to needed to draw a
    *     rectangle.
    * @param erase Set to true to erase the rectangle in VBL, otherwise draw it
-   * @return the token.
-   * @throws ParserException If the minimum required parameters are not present in the JSON, throw
-   *     ParserException
+   * @return the VBL area if the renderer is null, and null otherwise.
+   * @throws ParserException If the minimum required parameters are not present in the JSON.
    */
   private Area drawCrossVBL(ZoneRenderer renderer, JSONObject vblObject, boolean erase)
       throws ParserException {
@@ -694,9 +685,8 @@ public class VBL_Functions extends AbstractFunction {
    * @param vblObject The JSONObject containing all the coordinates and values to needed to draw a
    *     rectangle.
    * @param erase Set to true to erase the rectangle in VBL, otherwise draw it
-   * @return
-   * @throws ParserException If the minimum required parameters are not present in the JSON, throw
-   *     ParserException
+   * @return the VBL area if the renderer is null, and null otherwise.
+   * @throws ParserException If the minimum required parameters are not present in the JSON.
    */
   private Area drawCircleVBL(ZoneRenderer renderer, JSONObject vblObject, boolean erase)
       throws ParserException {
@@ -781,10 +771,10 @@ public class VBL_Functions extends AbstractFunction {
    * Get the required parameters needed from the JSON to get/set VBL within a defined rectangle.
    *
    * @param renderer Reference to the ZoneRenderer
-   * @param vblObject The JSONObject containing all the coordinates and values to needed to draw a
+   * @param vblObject JSONObject containing all the coordinates and values needed to draw a
    *     rectangle.
-   * @throws ParserException If the minimum required parameters are not present in the JSON, throw
-   *     ParserException
+   * @return the VBL area.
+   * @throws ParserException If the minimum required parameters are not present in the JSON.
    */
   private Area getVBL(ZoneRenderer renderer, JSONObject vblObject) throws ParserException {
     String funcname = "getVBL[Rectangle]";

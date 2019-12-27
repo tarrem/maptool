@@ -93,6 +93,10 @@ public abstract class AbstractAStarWalker extends AbstractZoneWalker {
    * token is moving, does it have sight, and so on). Currently that information is not available
    * here, but perhaps an option Token parameter could be specified to the constructor? Or maybe as
    * the tree was scanned, since I believe all Grids share a common ZoneWalker.
+   *
+   * @param x the x of the CellPoint
+   * @param y the y of the CellPoint
+   * @return the array of (x,y) for the neighbor cells
    */
   protected abstract int[][] getNeighborMap(int x, int y);
 
@@ -209,7 +213,7 @@ public abstract class AbstractAStarWalker extends AbstractZoneWalker {
 
       // We now calculate paths off the main UI thread but only one at a time. If the token moves we
       // cancel the thread
-      // and restart so we're only caclulating the most recent path request. Clearing the list
+      // and restart so we're only calculating the most recent path request. Clearing the list
       // effectively finishes
       // this thread gracefully.
       if (Thread.interrupted()) {
@@ -226,8 +230,18 @@ public abstract class AbstractAStarWalker extends AbstractZoneWalker {
 
     // Jamz We don't need to "calculate" distance after the fact as it's already stored as the G
     // cost...
-    if (!ret.isEmpty()) distance = ret.get(0).getDistanceTraveled(zone);
-    else distance = 0;
+    if (!ret.isEmpty()) {
+      distance = ret.get(0).getDistanceTraveled(zone);
+    } else { // if pathfinding interrupted because of timeout
+      distance = 0;
+      AStarCellPoint goalCell = new AStarCellPoint(goal); // we allow reaching of target location
+      AStarCellPoint startCell = new AStarCellPoint(start);
+
+      goalCell.parent = startCell;
+
+      ret.add(goalCell);
+      ret.add(startCell);
+    }
 
     Collections.reverse(ret);
     timeOut = (System.currentTimeMillis() - timeOut);

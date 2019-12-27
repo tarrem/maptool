@@ -53,6 +53,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import javax.imageio.ImageIO;
+import javax.imageio.spi.IIORegistry;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -184,7 +185,6 @@ public class MapTool {
   private static AssetTransferManager assetTransferManager;
   private static ServiceAnnouncer announcer;
   private static AutoSaveManager autoSaveManager;
-  private static SoundManager soundManager;
   private static TaskBarFlasher taskbarFlasher;
   private static EventDispatcher eventDispatcher;
   private static MapToolLineParser parser = new MapToolLineParser();
@@ -530,16 +530,17 @@ public class MapTool {
     }
   }
 
-  public static SoundManager getSoundManager() {
-    return soundManager;
-  }
-
+  /**
+   * Play the sound registered to an eventId.
+   *
+   * @param eventId the eventId of the sound.
+   */
   public static void playSound(String eventId) {
     if (AppPreferences.getPlaySystemSounds()) {
       if (AppPreferences.getPlaySystemSoundsOnlyWhenNotFocused() && isInFocus()) {
         return;
       }
-      soundManager.playSoundEvent(eventId);
+      SoundManager.playSoundEvent(eventId);
     }
   }
 
@@ -683,11 +684,10 @@ public class MapTool {
     eventDispatcher = new EventDispatcher();
     registerEvents();
 
-    soundManager = new SoundManager();
     try {
-      soundManager.configure(SOUND_PROPERTIES);
-      soundManager.registerSoundEvent(
-          SND_INVALID_OPERATION, soundManager.getRegisteredSound("Dink"));
+      SoundManager.configure(SOUND_PROPERTIES);
+      SoundManager.registerSoundEvent(
+          SND_INVALID_OPERATION, SoundManager.getRegisteredSound("Dink"));
     } catch (IOException ioe) {
       MapTool.showError("While initializing (configuring sound)", ioe);
     }
@@ -822,10 +822,23 @@ public class MapTool {
     return messageList;
   }
 
-  /** These are the messages that originate from the server */
+  /**
+   * These are the messages that originate from the server
+   *
+   * @param message the message to display
+   */
   public static void addServerMessage(TextMessage message) {
     // Filter
     if (message.isGM() && !getPlayer().isGM()) {
+      return;
+    }
+    if (message.isGmMe() && !getPlayer().isGM() && !message.isFromSelf()) {
+      return;
+    }
+    if ((message.isNotGm() || message.isNotGmMe()) && getPlayer().isGM()) {
+      return;
+    }
+    if ((message.isNotMe() || message.isNotGmMe()) && message.isFromSelf()) {
       return;
     }
     if (message.isWhisper() && !getPlayer().getName().equalsIgnoreCase(message.getTarget())) {
@@ -857,7 +870,7 @@ public class MapTool {
   /**
    * Add a message only this client can see. This is a shortcut for addMessage(ME, ...)
    *
-   * @param message
+   * @param message message to be sent
    */
   public static void addLocalMessage(String message) {
     addMessage(TextMessage.me(null, message));
@@ -866,7 +879,7 @@ public class MapTool {
   /**
    * Add a message all clients can see. This is a shortcut for addMessage(SAY, ...)
    *
-   * @param message
+   * @param message message to be sent
    */
   public static void addGlobalMessage(String message) {
     addMessage(TextMessage.say(null, message));
@@ -896,10 +909,33 @@ public class MapTool {
    */
   public static void addGlobalMessage(String message, List<String> targets) {
     for (String target : targets) {
-      if ("gm".equalsIgnoreCase(target)) {
-        addMessage(TextMessage.gm(null, message));
-      } else {
-        addMessage(TextMessage.whisper(null, target, message));
+      switch (target.toLowerCase()) {
+        case "gm-self":
+          addMessage(TextMessage.gmMe(null, message));
+          break;
+        case "gm":
+          addMessage(TextMessage.gm(null, message));
+          break;
+        case "self":
+          addLocalMessage(message);
+          break;
+        case "not-gm":
+          addMessage(TextMessage.notGm(null, message));
+          break;
+        case "not-self":
+          addMessage(TextMessage.notMe(null, message));
+          break;
+        case "not-gm-self":
+          addMessage(TextMessage.notGmMe(null, message));
+          break;
+        case "all":
+          addGlobalMessage(message);
+          break;
+        case "none":
+          break;
+        default:
+          addMessage(TextMessage.whisper(null, target, message));
+          break;
       }
     }
   }
@@ -948,6 +984,7 @@ public class MapTool {
 
     AssetManager.updateRepositoryList();
     MapTool.getFrame().getCampaignPanel().reset();
+    MapTool.getFrame().getGmPanel().reset();
     UserDefinedMacroFunctions.getInstance().loadCampaignLibFunctions();
   }
 
@@ -959,8 +996,18 @@ public class MapTool {
     return assetTransferManager;
   }
 
+  /**
+   * Start the server from a campaign file and various settings.
+   *
+   * @param id the id of the server for announcement
+   * @param config the server configuration
+   * @param campaign the campaign
+   * @param copyCampaign should the campaign be a copy of the one provided
+   * @throws IOException if new MapToolServer fails
+   */
   public static void startServer(
-      String id, ServerConfig config, ServerPolicy policy, Campaign campaign) throws IOException {
+      String id, ServerConfig config, ServerPolicy policy, Campaign campaign, boolean copyCampaign)
+      throws IOException {
     if (server != null) {
       Thread.dumpStack();
       showError("msg.error.alreadyRunningServer");
@@ -972,9 +1019,13 @@ public class MapTool {
     // TODO: the client and server campaign MUST be different objects.
     // Figure out a better init method
     server = new MapToolServer(config, policy);
-    server.setCampaign(campaign);
 
     serverPolicy = server.getPolicy();
+    if (copyCampaign) {
+      server.setCampaign(new Campaign(campaign)); // copy of FoW depends on server policies
+    } else {
+      server.setCampaign(campaign);
+    }
 
     if (announcer != null) {
       announcer.stop();
@@ -1080,7 +1131,7 @@ public class MapTool {
 
   public static void startPersonalServer(Campaign campaign) throws IOException {
     ServerConfig config = ServerConfig.createPersonalServerConfig();
-    MapTool.startServer(null, config, new ServerPolicy(), campaign);
+    MapTool.startServer(null, config, new ServerPolicy(), campaign, false);
 
     String username = System.getProperty("user.name", "Player");
 
@@ -1573,7 +1624,7 @@ public class MapTool {
 
     if (listMacros) {
       String logOutput = "";
-      List<String> macroList = parser.listAllMacroFunctions();
+      List<String> macroList = new ArrayList<>(parser.listAllMacroFunctions().keySet());
       Collections.sort(macroList);
 
       for (String macro : macroList) {
@@ -1631,6 +1682,11 @@ public class MapTool {
     }
 
     URL.setURLStreamHandlerFactory(factory);
+
+    // Register ImageReaderSpi for jpeg2000 from JAI manually (issue due to uberJar packaging)
+    // https://github.com/jai-imageio/jai-imageio-core/issues/29
+    IIORegistry registry = IIORegistry.getDefaultInstance();
+    registry.registerServiceProvider(new com.github.jaiimageio.jpeg2000.impl.J2KImageReaderSpi());
 
     final Toolkit tk = Toolkit.getDefaultToolkit();
     tk.getSystemEventQueue().push(new MapToolEventQueue());

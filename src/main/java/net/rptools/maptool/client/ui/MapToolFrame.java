@@ -98,7 +98,6 @@ import net.rptools.maptool.client.AppActions;
 import net.rptools.maptool.client.AppActions.ClientAction;
 import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.AppState;
 import net.rptools.maptool.client.AppStyle;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
@@ -115,6 +114,7 @@ import net.rptools.maptool.client.swing.ProgressStatusBar;
 import net.rptools.maptool.client.swing.SpacerStatusBar;
 import net.rptools.maptool.client.swing.StatusPanel;
 import net.rptools.maptool.client.swing.ZoomStatusBar;
+import net.rptools.maptool.client.tool.PointerTool;
 import net.rptools.maptool.client.ui.assetpanel.AssetDirectory;
 import net.rptools.maptool.client.ui.assetpanel.AssetPanel;
 import net.rptools.maptool.client.ui.commandpanel.CommandPanel;
@@ -124,10 +124,7 @@ import net.rptools.maptool.client.ui.drawpanel.DrawPanelTreeModel;
 import net.rptools.maptool.client.ui.drawpanel.DrawablesPanel;
 import net.rptools.maptool.client.ui.lookuptable.LookupTablePanel;
 import net.rptools.maptool.client.ui.macrobuttons.buttons.MacroButton;
-import net.rptools.maptool.client.ui.macrobuttons.panels.CampaignPanel;
-import net.rptools.maptool.client.ui.macrobuttons.panels.GlobalPanel;
-import net.rptools.maptool.client.ui.macrobuttons.panels.ImpersonatePanel;
-import net.rptools.maptool.client.ui.macrobuttons.panels.SelectionPanel;
+import net.rptools.maptool.client.ui.macrobuttons.panels.*;
 import net.rptools.maptool.client.ui.token.EditTokenDialog;
 import net.rptools.maptool.client.ui.tokenpanel.InitiativePanel;
 import net.rptools.maptool.client.ui.tokenpanel.TokenPanelTreeCellRenderer;
@@ -181,12 +178,15 @@ public class MapToolFrame extends DefaultDockableHolder
   // Components
   private final AssetPanel assetPanel;
   private final ClientConnectionPanel connectionPanel;
+  /** The panel showing the initiative order. */
   private final InitiativePanel initiativePanel;
+
   private final PointerOverlay pointerOverlay;
   private final CommandPanel commandPanel;
   private final AboutDialog aboutDialog;
   private final ColorPicker colorPicker;
   private final Toolbox toolbox;
+  private final ToolbarPanel toolbarPanel;
   private final ZoneMiniMapPanel zoneMiniMapPanel;
   private final JPanel zoneRendererPanel;
   private JPanel visibleControlPanel;
@@ -214,7 +214,9 @@ public class MapToolFrame extends DefaultDockableHolder
   private final ChatTyperObserver chatTyperObserver;
 
   private final GlassPane glassPane;
+  /** Model for the token tree panel of the map explorer. */
   private TokenPanelTreeModel tokenPanelTreeModel;
+
   private DrawPanelTreeModel drawPanelTreeModel;
   private DrawablesPanel drawablesPanel;
   private final TextureChooserPanel textureChooserPanel;
@@ -227,7 +229,7 @@ public class MapToolFrame extends DefaultDockableHolder
   private JFileChooser savePropsFileChooser;
   private JFileChooser saveFileChooser;
 
-  // Remember the last layer selected
+  /** Remember the last layer selected */
   private Layer lastSelectedLayer = Zone.Layer.TOKEN;
 
   private final FileFilter campaignFilter =
@@ -245,6 +247,7 @@ public class MapToolFrame extends DefaultDockableHolder
   private EditTokenDialog tokenPropertiesDialog;
 
   private final CampaignPanel campaignPanel = new CampaignPanel();
+  private final GmPanel gmPanel = new GmPanel();
   private final GlobalPanel globalPanel = new GlobalPanel();
   private final SelectionPanel selectionPanel = new SelectionPanel();
   private final ImpersonatePanel impersonatePanel = new ImpersonatePanel();
@@ -513,10 +516,11 @@ public class MapToolFrame extends DefaultDockableHolder
     rendererBorderPanel = new JPanel(new GridLayout());
     rendererBorderPanel.setBorder(BorderFactory.createLineBorder(Color.darkGray));
     rendererBorderPanel.add(zoneRendererPanel);
+    toolbarPanel = new ToolbarPanel(toolbox);
 
     // Put it all together
     setJMenuBar(menuBar);
-    add(BorderLayout.NORTH, new ToolbarPanel(toolbox));
+    add(BorderLayout.NORTH, toolbarPanel);
     add(BorderLayout.SOUTH, statusPanel);
 
     JLayeredPane glassPaneComposite = new JLayeredPane();
@@ -628,6 +632,7 @@ public class MapToolFrame extends DefaultDockableHolder
     LOOKUP_TABLES("Tables"),
     GLOBAL("Global"),
     CAMPAIGN("Campaign"),
+    GM("Gm"),
     SELECTION("Selected"),
     IMPERSONATED("Impersonate");
     // @formatter:on
@@ -670,6 +675,7 @@ public class MapToolFrame extends DefaultDockableHolder
     getDockingManager().addFrame(getFrame(MTFrame.LOOKUP_TABLES));
     getDockingManager().addFrame(getFrame(MTFrame.GLOBAL));
     getDockingManager().addFrame(getFrame(MTFrame.CAMPAIGN));
+    getDockingManager().addFrame(getFrame(MTFrame.GM));
     getDockingManager().addFrame(getFrame(MTFrame.SELECTION));
     getDockingManager().addFrame(getFrame(MTFrame.IMPERSONATED));
 
@@ -678,10 +684,17 @@ public class MapToolFrame extends DefaultDockableHolder
           .loadInitialLayout(
               MapToolFrame.class.getClassLoader().getResourceAsStream(INITIAL_LAYOUT_XML));
     } catch (ParserConfigurationException | SAXException | IOException e) {
+      MapTool.showError("msg.error.layoutInitial", e);
+    }
+    try {
+      getDockingManager()
+          .loadLayoutDataFromFile(AppUtil.getAppHome("config").getAbsolutePath() + "/layout.dat");
+    } catch (IllegalArgumentException e) {
+      // This error sometimes comes up when using three monitors due to a bug in the java jdk
+      // incorrectly
+      // reporting screen size as zero.
       MapTool.showError("msg.error.layoutParse", e);
     }
-    getDockingManager()
-        .loadLayoutDataFromFile(AppUtil.getAppHome("config").getAbsolutePath() + "/layout.dat");
   }
 
   public DockableFrame getFrame(MTFrame frame) {
@@ -726,6 +739,7 @@ public class MapToolFrame extends DefaultDockableHolder
             MTFrame.INITIATIVE, initiativePanel, new ImageIcon(AppStyle.initiativePanelImage)));
 
     JScrollPane campaign = scrollPaneFactory(campaignPanel);
+    JScrollPane gm = scrollPaneFactory(gmPanel);
     JScrollPane global = scrollPaneFactory(globalPanel);
     JScrollPane selection = scrollPaneFactory(selectionPanel);
     JScrollPane impersonate = scrollPaneFactory(impersonatePanel);
@@ -735,6 +749,8 @@ public class MapToolFrame extends DefaultDockableHolder
     frameMap.put(
         MTFrame.CAMPAIGN,
         createDockingFrame(MTFrame.CAMPAIGN, campaign, new ImageIcon(AppStyle.campaignPanelImage)));
+    frameMap.put(
+        MTFrame.GM, createDockingFrame(MTFrame.GM, gm, new ImageIcon(AppStyle.campaignPanelImage)));
     frameMap.put(
         MTFrame.SELECTION,
         createDockingFrame(
@@ -776,6 +792,7 @@ public class MapToolFrame extends DefaultDockableHolder
     return tokenPropertiesDialog;
   }
 
+  /** Repaints the current ZoneRenderer, if it is not null. */
   public void refresh() {
     if (getCurrentZoneRenderer() != null) {
       getCurrentZoneRenderer().repaint();
@@ -1202,6 +1219,7 @@ public class MapToolFrame extends DefaultDockableHolder
     }
   }
 
+  /** Create the token tree panel for the map explorer */
   private JComponent createTokenTreePanel() {
     final JTree tree = new JTree();
     tokenPanelTreeModel = new TokenPanelTreeModel(tree);
@@ -1299,6 +1317,7 @@ public class MapToolFrame extends DefaultDockableHolder
     }
   }
 
+  /** Update tokenPanelTreeModel and the initiativePanel. */
   public void updateTokenTree() {
     if (tokenPanelTreeModel != null) {
       tokenPanelTreeModel.update();
@@ -1495,6 +1514,12 @@ public class MapToolFrame extends DefaultDockableHolder
     zoneRendererList.add(renderer);
   }
 
+  /**
+   * Remove the ZoneRenderer. If it's the current ZoneRenderer, set a new current ZoneRenderer.
+   * Flush zoneMiniMapPanel.
+   *
+   * @param renderer the ZoneRenderer to remove.
+   */
   public void removeZoneRenderer(ZoneRenderer renderer) {
     boolean isCurrent = renderer == getCurrentZoneRenderer();
     zoneRendererList.remove(renderer);
@@ -1521,6 +1546,20 @@ public class MapToolFrame extends DefaultDockableHolder
     zoneMiniMapPanel.repaint();
   }
 
+  /** Stop the drag of the token, if any is being dragged. */
+  private void stopTokenDrag() {
+    Tool tool = MapTool.getFrame().getToolbox().getSelectedTool();
+    if (tool instanceof PointerTool) {
+      PointerTool pointer = (PointerTool) tool;
+      if (pointer.isDraggingToken()) pointer.stopTokenDrag();
+    }
+  }
+
+  /**
+   * Set the current ZoneRenderer
+   *
+   * @param renderer the ZoneRenderer
+   */
   public void setCurrentZoneRenderer(ZoneRenderer renderer) {
     // Flush first so that the new zone renderer can inject the newly needed images
     if (renderer != null) {
@@ -1535,6 +1574,7 @@ public class MapToolFrame extends DefaultDockableHolder
       zoneRendererList.add(renderer);
     }
     if (currentRenderer != null) {
+      stopTokenDrag(); // if a token is being dragged, stop the drag
       currentRenderer.flush();
       zoneRendererPanel.remove(currentRenderer);
     }
@@ -1558,14 +1598,14 @@ public class MapToolFrame extends DefaultDockableHolder
     getZoomStatusBar().update();
   }
 
+  /**
+   * Set the MapTool title bar. The title includes the name of the app, the player name, the
+   * campaign name and the name of the specified zone.
+   *
+   * @param renderer the ZoneRenderer of the zone.
+   */
   public void setTitleViaRenderer(ZoneRenderer renderer) {
-    String campaignName = " - [Default]";
-    if (AppState.getCampaignFile() != null) {
-      String s = AppState.getCampaignFile().getName();
-      // remove the file extension of the campaign file name
-      s = s.substring(0, s.length() - AppConstants.CAMPAIGN_FILE_EXTENSION.length());
-      campaignName = " - [" + s + "]";
-    }
+    String campaignName = " - [" + MapTool.getCampaign().getName() + "]";
     setTitle(
         AppConstants.APP_NAME
             + " - "
@@ -1574,10 +1614,29 @@ public class MapToolFrame extends DefaultDockableHolder
             + (renderer != null ? " - " + renderer.getZone().getName() : ""));
   }
 
+  /**
+   * Set the MapTool title bar. The title includes the name of the app, the player name, the
+   * campaign name and the current zone name.
+   */
+  public void setTitle() {
+    setTitleViaRenderer(MapTool.getFrame().getCurrentZoneRenderer());
+  }
+
   public Toolbox getToolbox() {
     return toolbox;
   }
 
+  public ToolbarPanel getToolbarPanel() {
+    return toolbarPanel;
+  }
+
+  /**
+   * Return the first ZoneRender for which the zone is the same as the passed zone (should be only
+   * one).
+   *
+   * @param zone the zone.
+   * @return the ZoneRenderer.
+   */
   public ZoneRenderer getZoneRenderer(Zone zone) {
     for (ZoneRenderer renderer : zoneRendererList) {
       if (zone == renderer.getZone()) {
@@ -1587,9 +1646,30 @@ public class MapToolFrame extends DefaultDockableHolder
     return null;
   }
 
+  /**
+   * Return the first ZoneRender for which the zone has the zoneGUID (should be only one).
+   *
+   * @param zoneGUID the zoneGUID of the zone.
+   * @return the ZoneRenderer.
+   */
   public ZoneRenderer getZoneRenderer(GUID zoneGUID) {
     for (ZoneRenderer renderer : zoneRendererList) {
       if (zoneGUID.equals(renderer.getZone().getId())) {
+        return renderer;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the first ZoneRender for which the zone has the zoneName (could be multiples).
+   *
+   * @param zoneName the name of the zone.
+   * @return the ZoneRenderer.
+   */
+  public ZoneRenderer getZoneRenderer(final String zoneName) {
+    for (ZoneRenderer renderer : zoneRendererList) {
+      if (zoneName.equals(renderer.getZone().getName())) {
         return renderer;
       }
     }
@@ -1878,6 +1958,10 @@ public class MapToolFrame extends DefaultDockableHolder
     return campaignPanel;
   }
 
+  public GmPanel getGmPanel() {
+    return gmPanel;
+  }
+
   public GlobalPanel getGlobalPanel() {
     return globalPanel;
   }
@@ -1890,15 +1974,17 @@ public class MapToolFrame extends DefaultDockableHolder
     return selectionPanel;
   }
 
+  /** Reset the impersonatePanel and the selectionPanel. */
   public void resetTokenPanels() {
     impersonatePanel.reset();
     selectionPanel.reset();
   }
 
-  // currently only used after loading a campaign
+  /** Reset the macro panels. Currently only used after loading a campaign. */
   public void resetPanels() {
     MacroButtonHotKeyManager.clearKeyStrokes();
     campaignPanel.reset();
+    gmPanel.reset();
     globalPanel.reset();
     impersonatePanel.reset();
     selectionPanel.reset();

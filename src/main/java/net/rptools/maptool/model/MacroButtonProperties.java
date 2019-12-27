@@ -31,6 +31,7 @@ import net.rptools.maptool.client.ui.MacroButtonHotKeyManager;
 import net.rptools.maptool.client.ui.macrobuttons.buttons.MacroButton;
 import net.rptools.maptool.client.ui.macrobuttons.buttons.MacroButtonPrefs;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
+import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.util.StringUtil;
 import net.rptools.parser.ParserException;
 import org.apache.logging.log4j.LogManager;
@@ -220,8 +221,16 @@ public class MacroButtonProperties implements Comparable<MacroButtonProperties> 
     save();
   }
 
-  // constructor for creating a new copy of an existing token button, auto-saves
-  public MacroButtonProperties(Token token, int index, MacroButtonProperties properties) {
+  /**
+   * Constructor for creating a new copy of an existing token button, can auto-saves
+   *
+   * @param token the token for which to create the copy
+   * @param index the index of the next macro
+   * @param properties the MacroButtonProperties of the copied button
+   * @param autoSave should the macro be autosaved or not?
+   */
+  public MacroButtonProperties(
+      Token token, int index, MacroButtonProperties properties, boolean autoSave) {
     this(index);
     setSaveLocation("Token");
     setTokenId(token);
@@ -248,7 +257,20 @@ public class MacroButtonProperties implements Comparable<MacroButtonProperties> 
     setCompareCommand(properties.getCompareCommand());
     String tt = properties.getToolTip();
     setToolTip(tt);
-    save();
+    if (autoSave) {
+      save();
+    }
+  }
+
+  /**
+   * Constructor for creating a new copy of an existing token button, auto-saves
+   *
+   * @param token the token for which to create the copy
+   * @param index the index of the next macro
+   * @param properties the MacroButtonProperties of the copied button
+   */
+  public MacroButtonProperties(Token token, int index, MacroButtonProperties properties) {
+    this(token, index, properties, true);
   }
 
   // constructor for creating common macro buttons on selection panel
@@ -325,11 +347,18 @@ public class MacroButtonProperties implements Comparable<MacroButtonProperties> 
 
   public void save() {
     if (saveLocation.equals("Token") && tokenId != null) {
-      getToken().saveMacroButtonProperty(this);
+      Token token = getToken();
+      if (token != null) {
+        token.saveMacroButtonProperty(this);
+      } else {
+        MapTool.showError(I18N.getText("msg.error.macro.buttonNullToken", getLabel(), tokenId));
+      }
     } else if (saveLocation.equals("GlobalPanel")) {
       MacroButtonPrefs.savePreferences(this);
     } else if (saveLocation.equals("CampaignPanel")) {
       MapTool.getCampaign().saveMacroButtonProperty(this);
+    } else if (saveLocation.equals("GmPanel")) {
+      MapTool.getCampaign().saveGmMacroButtonProperty(this);
     }
   }
 
@@ -431,6 +460,9 @@ public class MacroButtonProperties implements Comparable<MacroButtonProperties> 
             trusted = MapTool.getPlayer().isGM();
           } else if (saveLocation.equals("CampaignPanel")) {
             loc = "campaign";
+          } else if (saveLocation.equals("GmPanel")) {
+            loc = "gm";
+            trusted = MapTool.getPlayer().isGM();
           } else if (contextToken != null) {
             // Should this IF stmt really be:
             // contextToken.matches("^[^:\\s]+:")
@@ -462,7 +494,19 @@ public class MacroButtonProperties implements Comparable<MacroButtonProperties> 
   }
 
   public Token getToken() {
-    return MapTool.getFrame().getCurrentZoneRenderer().getZone().getToken(this.tokenId);
+    Token token = MapTool.getFrame().getCurrentZoneRenderer().getZone().getToken(this.tokenId);
+
+    // If token not in current map, look for token in other maps.
+    if (token == null) {
+      List<ZoneRenderer> zrenderers = MapTool.getFrame().getZoneRenderers();
+      for (ZoneRenderer zr : zrenderers) {
+        token = zr.getZone().getToken(this.tokenId);
+        if (token != null) {
+          break;
+        }
+      }
+    }
+    return token;
   }
 
   public void setTokenId(Token token) {
@@ -588,7 +632,7 @@ public class MacroButtonProperties implements Comparable<MacroButtonProperties> 
    * if it's not then the color is converted to CSS format <b>#FF00FF</b> format and that string is
    * returned.
    *
-   * @return
+   * @return string of the color
    */
   public String getFontColorAsHtml() {
     Color c = null;
@@ -708,6 +752,8 @@ public class MacroButtonProperties implements Comparable<MacroButtonProperties> 
     List<MacroButtonProperties> existingMacroList = null;
     if (source.equalsIgnoreCase("CampaignPanel")) {
       existingMacroList = MapTool.getCampaign().getMacroButtonPropertiesArray();
+    } else if (source.equalsIgnoreCase("GmPanel")) {
+      existingMacroList = MapTool.getCampaign().getGmMacroButtonPropertiesArray();
     } else if (source.equalsIgnoreCase("GlobalPanel")) {
       existingMacroList = MacroButtonPrefs.getButtonProperties();
     } else if (token != null) {

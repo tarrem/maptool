@@ -162,14 +162,14 @@ public class ImageFileImagePanelModel implements ImagePanelModel {
 
     Image image = null;
     try {
-      image = null;
-      if (dir.isHeroLabPortfolio()) {
+      if (dir == null) {
+        // Nothing - let it return the transfering image.
+        image = ImageManager.TRANSFERING_IMAGE;
+      } else if (dir.isHeroLabPortfolio()) {
         image = ((AssetDirectory) dir).getImageFor(fileList.get(index));
       } else if (dir instanceof AssetDirectory) {
         image = ((AssetDirectory) dir).getImageFor(fileList.get(index));
-      }
-      if (dir instanceof PdfAsDirectory) {
-        // System.out.println("Here I am for: " + dir.hashCode());
+      } else if (dir instanceof PdfAsDirectory) {
         image = ((PdfAsDirectory) dir).getImageFor(fileList.get(index));
       }
     } catch (IndexOutOfBoundsException e) {
@@ -591,7 +591,15 @@ public class ImageFileImagePanelModel implements ImagePanelModel {
     }
 
     Collections.sort(fileList, filenameComparator);
-    MapTool.getFrame().getAssetPanel().updateGlobalSearchLabel(fileList.size());
+    try {
+      MapTool.getFrame().getAssetPanel().updateGlobalSearchLabel(fileList.size());
+    } catch (NullPointerException e) {
+      // This currently throws a NPE if the frame was not finished initializing when runs. For now,
+      // lets log a message and continue.
+      log.warn(
+          "NullPointerException encountered while trying to update ImageFileImagePanelModel global search label",
+          e);
+    }
   }
 
   private static class ListFilesSwingWorker extends SwingWorker<Void, Integer> {
