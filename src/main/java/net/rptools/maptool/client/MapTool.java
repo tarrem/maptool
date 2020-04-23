@@ -51,9 +51,20 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import javafx.application.Platform;
 import javax.imageio.ImageIO;
 import javax.imageio.spi.IIORegistry;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
+import javax.swing.ToolTipManager;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.plaf.FontUIResource;
 import net.rptools.clientserver.hessian.client.ClientConnection;
 import net.rptools.lib.BackupManager;
@@ -1688,6 +1699,10 @@ public class MapTool {
 
     // System properties
     System.setProperty("swing.aatext", "true");
+
+    // Prevent the JavaFX thread from closing after the splash screen closes,
+    // we will be using it later...
+    Platform.setImplicitExit(false);
 
     final SplashScreen splash =
         new SplashScreen((isDevelopment()) ? getVersion() : "v" + getVersion());

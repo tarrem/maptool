@@ -17,8 +17,10 @@ package net.rptools.maptool.client;
 import com.jidesoft.docking.DockableFrame;
 import java.awt.Dimension;
 import java.awt.Event;
+import java.awt.EventQueue;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
@@ -46,12 +48,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
@@ -82,6 +90,7 @@ import net.rptools.maptool.client.ui.SysInfoDialog;
 import net.rptools.maptool.client.ui.assetpanel.AssetPanel;
 import net.rptools.maptool.client.ui.assetpanel.Directory;
 import net.rptools.maptool.client.ui.campaignproperties.CampaignPropertiesDialog;
+import net.rptools.maptool.client.ui.fx.controller.MacroEditor_Controller;
 import net.rptools.maptool.client.ui.htmlframe.HTMLOverlayManager;
 import net.rptools.maptool.client.ui.io.FTPClient;
 import net.rptools.maptool.client.ui.io.FTPTransferObject;
@@ -1660,6 +1669,80 @@ public class AppActions {
         }
       };
 
+  // For new Macro Editor written using FX
+  private static JFrame macroEditorJFrame;
+
+  private static final String MACRO_EDITOR_FXML =
+      "/net/rptools/maptool/client/ui/fx/MacroEditor.fxml";
+
+  public static final Action SHOW_MACRO_EDITOR =
+      new DefaultClientAction() {
+        {
+          init("action.showMacroEditor");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          // For now, we'll restrict this editor to GM mode only until we add the tree view filters
+          // like Map Explorer
+          return (MapTool.getPlayer() != null && MapTool.getPlayer().isGM());
+        }
+
+        @Override
+        protected void executeAction(ActionEvent e) {}
+
+        @Override
+        public void execute(ActionEvent e) {
+          EventQueue.invokeLater(() -> initAndShowMacroEditorFX());
+        }
+      };
+
+  // Invoked this on the EventQueue thread...
+  private static void initAndShowMacroEditorFX() {
+    if (macroEditorJFrame != null) {
+      if (macroEditorJFrame.isShowing()) macroEditorJFrame.dispose();
+      else macroEditorJFrame.setVisible(true);
+    } else {
+      macroEditorJFrame = new JFrame(I18N.getText("msg.info.showMacroEditor"));
+
+      // Adjust editor to 80% the size of MapTool and center on MapTool coordinates
+      int SCENE_WIDTH = (int) (MapTool.getFrame().getWidth() * .8);
+      int SCENE_HEIGHT = (int) (MapTool.getFrame().getHeight() * .8);
+      Point locationOnScreen = MapTool.getFrame().getLocationOnScreen();
+      locationOnScreen.translate(
+          (MapTool.getFrame().getWidth() - SCENE_WIDTH) / 2,
+          (MapTool.getFrame().getHeight() - SCENE_HEIGHT) / 2);
+
+      final JFXPanel fxPanel = new JFXPanel();
+      macroEditorJFrame.add(fxPanel);
+      macroEditorJFrame.setSize(SCENE_WIDTH, SCENE_HEIGHT);
+      macroEditorJFrame.setLocation(locationOnScreen);
+      macroEditorJFrame.setVisible(true);
+      macroEditorJFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+
+      Platform.runLater(() -> initMacroEditorFX(fxPanel));
+    }
+  }
+
+  // Invoked this on the JavaFX thread...
+  private static void initMacroEditorFX(JFXPanel fxPanel) {
+    try {
+      FXMLLoader loader = new FXMLLoader(AppActions.class.getResource(MACRO_EDITOR_FXML));
+      Parent root = loader.load();
+      Scene scene = new Scene(root);
+      fxPanel.setScene(scene);
+
+      //      scene.widthProperty().addListener((obs, oldVal, newVal) -> {
+      //        log.info("RESIZE ME! Weeee!");
+      //      });
+
+      MacroEditor_Controller macroEditor_Controller = loader.getController();
+      macroEditor_Controller.update();
+    } catch (IOException ex) {
+      log.error("Error loading macroEditorJfxPanel.", ex);
+    }
+  }
+
   public static final Action TOGGLE_GRID =
       new DefaultClientAction() {
         {
@@ -3226,7 +3309,7 @@ public class AppActions {
      */
     private long lastAccelInvoke;
 
-    public final void execute(ActionEvent e) {
+    public void execute(ActionEvent e) {
       if (NEEDS_GUARD && (e != null) && (e.getSource() instanceof JCheckBoxMenuItem)) {
         if (e.getModifiers() == 0) {
           if (TimeUnit.MILLISECONDS.toSeconds(e.getWhen() - lastAccelInvoke) < 1) {
