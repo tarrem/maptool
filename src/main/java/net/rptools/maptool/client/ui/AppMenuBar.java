@@ -18,11 +18,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,6 +33,7 @@ import net.rptools.maptool.client.AppState;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MRUCampaignManager;
 import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.TokenActions;
 import net.rptools.maptool.client.ui.MapToolFrame.MTFrame;
 import net.rptools.maptool.client.ui.htmlframe.HTMLOverlayManager;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
@@ -57,6 +54,7 @@ public class AppMenuBar extends JMenuBar {
     add(createFileMenu());
     add(createEditMenu());
     add(createMapMenu());
+    add(createTokenMenu());
     add(createViewMenu());
     add(createToolsMenu());
     add(createWindowMenu());
@@ -174,6 +172,24 @@ public class AppMenuBar extends JMenuBar {
     menu.add(new JMenuItem(AppActions.RENAME_ZONE));
     menu.add(new JMenuItem(AppActions.COPY_ZONE));
     menu.add(new JMenuItem(AppActions.REMOVE_ZONE));
+
+    return menu;
+  }
+
+  protected JMenu createTokenMenu() {
+    JMenu menu = I18N.createMenu("menu.token");
+
+    JMenu flipMenu = new JMenu(I18N.getText("token.popup.menu.flip"));
+
+    flipMenu.add(new JMenuItem(TokenActions.FLIP_HORIZONTAL));
+    flipMenu.add(new JMenuItem(TokenActions.FLIP_VERTICAL));
+    flipMenu.add(new JMenuItem(TokenActions.FLIP_ISOMETRIC));
+
+    menu.add(flipMenu);
+    menu.addSeparator();
+    menu.add(new JMenuItem(AppActions.CUT_TOKENS));
+    menu.add(new JMenuItem(AppActions.COPY_TOKENS));
+    menu.add(new JMenuItem(AppActions.PASTE_TOKENS));
 
     return menu;
   }

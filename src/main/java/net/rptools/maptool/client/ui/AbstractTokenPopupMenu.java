@@ -44,10 +44,7 @@ import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
-import net.rptools.maptool.client.AppActions;
-import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.AppUtil;
-import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.*;
 import net.rptools.maptool.client.tool.FacingTool;
 import net.rptools.maptool.client.tool.PointerTool;
 import net.rptools.maptool.client.tool.StampTool;
@@ -181,60 +178,9 @@ public abstract class AbstractTokenPopupMenu extends JPopupMenu {
   protected JMenu createFlipMenu() {
     JMenu flipMenu = new JMenu(I18N.getText("token.popup.menu.flip"));
 
-    flipMenu.add(
-        new AbstractAction() {
-          {
-            putValue(NAME, I18N.getText("token.popup.menu.flip.horizontal"));
-          }
-
-          public void actionPerformed(ActionEvent e) {
-            for (GUID tokenGUID : selectedTokenSet) {
-              Token token = renderer.getZone().getToken(tokenGUID);
-              if (token == null) {
-                continue;
-              }
-              token.setFlippedX(!token.isFlippedX());
-              MapTool.serverCommand().putToken(renderer.getZone().getId(), token);
-            }
-            MapTool.getFrame().refresh();
-          }
-        });
-    flipMenu.add(
-        new AbstractAction() {
-          {
-            putValue(NAME, I18N.getText("token.popup.menu.flip.vertical"));
-          }
-
-          public void actionPerformed(ActionEvent e) {
-            for (GUID tokenGUID : selectedTokenSet) {
-              Token token = renderer.getZone().getToken(tokenGUID);
-              if (token == null) {
-                continue;
-              }
-              token.setFlippedY(!token.isFlippedY());
-              MapTool.serverCommand().putToken(renderer.getZone().getId(), token);
-            }
-            MapTool.getFrame().refresh();
-          }
-        });
-    flipMenu.add(
-        new AbstractAction() {
-          {
-            putValue(NAME, I18N.getText("token.popup.menu.flip.isometric"));
-          }
-
-          public void actionPerformed(ActionEvent e) {
-            for (GUID tokenGUID : selectedTokenSet) {
-              Token token = renderer.getZone().getToken(tokenGUID);
-              if (token == null) {
-                continue;
-              }
-              token.setFlippedIso(!token.isFlippedIso());
-              MapTool.serverCommand().putToken(renderer.getZone().getId(), token);
-            }
-            MapTool.getFrame().refresh();
-          }
-        });
+    flipMenu.add(TokenActions.FLIP_HORIZONTAL);
+    flipMenu.add(TokenActions.FLIP_VERTICAL);
+    flipMenu.add(TokenActions.FLIP_ISOMETRIC);
     return flipMenu;
   }
 
