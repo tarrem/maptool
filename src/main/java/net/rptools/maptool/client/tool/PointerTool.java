@@ -1239,6 +1239,46 @@ public class PointerTool extends DefaultTool {
           }
         });
     actionMap.put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.CTRL_DOWN_MASK),
+        new AbstractAction() {
+          private static final long serialVersionUID = 1L;
+
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            handleKeyFlip(0); // X-axis
+          }
+        });
+    actionMap.put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.CTRL_DOWN_MASK),
+        new AbstractAction() {
+          private static final long serialVersionUID = 1L;
+
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            handleKeyFlip(0); // X-axis
+          }
+        });
+    actionMap.put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_DOWN_MASK),
+        new AbstractAction() {
+          private static final long serialVersionUID = 1L;
+
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            handleKeyFlip(1); // Y-axis
+          }
+        });
+    actionMap.put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK),
+        new AbstractAction() {
+          private static final long serialVersionUID = 1L;
+
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            handleKeyFlip(2); // Isometric
+          }
+        });
+    actionMap.put(
         KeyStroke.getKeyStroke(KeyEvent.VK_T, 0),
         new AbstractAction() {
           private static final long serialVersionUID = 1L;
@@ -1416,6 +1456,36 @@ public class PointerTool extends DefaultTool {
     }
     isMovingWithKeys = true;
     handleDragToken(zp, (int) dx, (int) dy);
+  }
+
+  public void handleKeyFlip(int axis) {
+    Set<GUID> selectedTokenSet = renderer.getOwnedTokens(renderer.getSelectedTokenSet());
+    if (selectedTokenSet.isEmpty()) {
+      return;
+    }
+
+    for (GUID tokenId : selectedTokenSet) {
+      Token token = renderer.getZone().getToken(tokenId);
+      if (token == null) {
+        return;
+      }
+
+      switch (axis) {
+        case 0:
+          token.setFlippedX(!token.isFlippedX());
+          break;
+        case 1:
+          token.setFlippedY(!token.isFlippedY());
+          break;
+        case 2:
+          token.setFlippedIso(!token.isFlippedIso());
+          break;
+        default:
+          return;
+      }
+      MapTool.serverCommand().putToken(renderer.getZone().getId(), token);
+    }
+    MapTool.getFrame().refresh();
   }
 
   private void setWaypoint() {
