@@ -705,35 +705,32 @@ public class Token extends BaseModel implements Cloneable {
   }
 
   public boolean isObjectStamp() {
-    return getLayer() == Zone.Layer.OBJECT;
+    return getLayer() == this.getZoneRenderer().getZone().getLayerMap().get(Zone.LAYER_KEY_OBJECT);
   }
 
   public boolean isGMStamp() {
-    return getLayer() == Zone.Layer.GM;
+    return getLayer() == this.getZoneRenderer().getZone().getLayerMap().get(Zone.LAYER_KEY_GM);
   }
 
   public boolean isBackgroundStamp() {
-    return getLayer() == Zone.Layer.BACKGROUND;
+    return getLayer()
+        == this.getZoneRenderer().getZone().getLayerMap().get(Zone.LAYER_KEY_BACKGROUND);
   }
 
   public boolean isOnTokenLayer() {
-    return getLayer() == Zone.Layer.TOKEN;
+    return getLayer() == this.getZoneRenderer().getZone().getLayerMap().get(Zone.LAYER_KEY_TOKEN);
   }
 
   public boolean isStamp() {
-    switch (getLayer()) {
-      case BACKGROUND:
-      case OBJECT:
-      case GM:
-        return true;
-      default:
-        break;
-    }
-    return false;
+    Map<String, Zone.Layer> layerMap = this.getZoneRenderer().getZone().getLayerMap();
+    Zone.Layer layer = getLayer();
+    return (layer == layerMap.get(Zone.LAYER_KEY_BACKGROUND)
+        || layer == layerMap.get(Zone.LAYER_KEY_OBJECT)
+        || layer == layerMap.get(Zone.LAYER_KEY_GM));
   }
 
   public boolean isToken() {
-    return getLayer() == Zone.Layer.TOKEN;
+    return getLayer() == this.getZoneRenderer().getZone().getLayerMap().get(Zone.LAYER_KEY_TOKEN);
   }
 
   public TokenShape getShape() {
@@ -769,18 +766,19 @@ public class Token extends BaseModel implements Cloneable {
   }
 
   public Zone.Layer getLayer() {
+    Map<String, Zone.Layer> layerMap = this.getZoneRenderer().getZone().getLayerMap();
     try {
       if (actualLayer == null) {
-        actualLayer = layer != null ? Zone.Layer.valueOf(layer) : Zone.Layer.TOKEN;
+        actualLayer = layer != null ? layerMap.get(layer) : layerMap.get(Zone.LAYER_KEY_TOKEN);
       }
       return actualLayer;
     } catch (IllegalArgumentException iae) {
-      return Zone.Layer.TOKEN;
+      return layerMap.get(Zone.LAYER_KEY_TOKEN);
     }
   }
 
   public void setLayer(Zone.Layer layer) {
-    this.layer = layer.name();
+    this.layer = layer.getName();
     actualLayer = layer;
   }
 

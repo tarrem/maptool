@@ -98,11 +98,7 @@ public abstract class AbstractDrawing implements Drawable, ImageObserver {
   }
 
   public void setLayer(Zone.Layer layer) {
-    this.layer = layer != null ? layer.name() : null;
-  }
-
-  public Zone.Layer getLayer() {
-    return layer != null ? Zone.Layer.valueOf(layer) : Zone.Layer.BACKGROUND;
+    this.layer = layer != null ? layer.getName() : null;
   }
 
   public String getName() {

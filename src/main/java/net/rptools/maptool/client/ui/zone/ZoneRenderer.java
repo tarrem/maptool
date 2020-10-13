@@ -978,11 +978,14 @@ public class ZoneRenderer extends JComponent
     }
     // next, extents of drawing objects
     List<DrawnElement> drawableList = new LinkedList<DrawnElement>();
-    drawableList.addAll(zone.getBackgroundDrawnElements());
-    drawableList.addAll(zone.getObjectDrawnElements());
-    drawableList.addAll(zone.getDrawnElements());
-    if (view.isGMView()) {
-      drawableList.addAll(zone.getGMDrawnElements());
+    for (Map.Entry<String, Layer> entry : zone.getLayerMap().entrySet()) {
+      if (entry.getKey() == "GM") {
+        if (view.isGMView()) {
+          drawableList.addAll(entry.getValue().drawables);
+        }
+      } else {
+        drawableList.addAll(entry.getValue().drawables);
+      }
     }
     for (DrawnElement element : drawableList) {
       Drawable drawable = element.getDrawable();
@@ -2164,7 +2167,7 @@ public class ZoneRenderer extends JComponent
         continue;
       }
       // Hide the hidden layer
-      if (keyToken.getLayer() == Zone.Layer.GM && !view.isGMView()) {
+      if (keyToken.getLayer().getName() == Zone.LAYER_KEY_GM && !view.isGMView()) {
         continue;
       }
       ZoneWalker walker = set.getWalker();
@@ -2870,7 +2873,7 @@ public class ZoneRenderer extends JComponent
   }
 
   public Zone.Layer getActiveLayer() {
-    return activeLayer != null ? activeLayer : Zone.Layer.TOKEN;
+    return activeLayer != null ? activeLayer : zone.getLayerMap().get(Zone.LAYER_KEY_TOKEN);
   }
 
   /**
@@ -2894,8 +2897,8 @@ public class ZoneRenderer extends JComponent
    * Get the token locations for the given layer, creates an empty list if there are not locations
    * for the given layer
    */
-  private List<TokenLocation> getTokenLocations(Zone.Layer layer) {
-    return tokenLocationMap.computeIfAbsent(layer, k -> new LinkedList<>());
+  private List<TokenLocation> getTokenLocations(String layer) {
+    return tokenLocationMap.computeIfAbsent(, k -> new LinkedList<>());
   }
 
   // TODO: I don't like this hardwiring
@@ -3116,7 +3119,7 @@ public class ZoneRenderer extends JComponent
         // System.out.println(token.getName() + " - " + location.boundsCache);
 
         Set<Token> tokenStackSet = null;
-        for (TokenLocation currLocation : getTokenLocations(Zone.Layer.TOKEN)) {
+        for (TokenLocation currLocation : getTokenLocations(Zone.LAYER_KEY_TOKEN)) {
           // Are we covering anyone ?
           // System.out.println("\t" + currLocation.token.getName() + " - " +
           // location.boundsCache.contains(currLocation.boundsCache));
