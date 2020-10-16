@@ -26,7 +26,7 @@ import java.awt.image.ImageObserver;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.model.Campaign;
 import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.Layer;
 
 /**
  * Abstract drawing. This class takes care of setting up the Pen since that will be the same for all
@@ -36,7 +36,7 @@ public abstract class AbstractDrawing implements Drawable, ImageObserver {
   /** The unique identifier for this drawable. It is immutable. */
   private final GUID id = new GUID();
 
-  private String layer;
+  private Layer layer;
   private String name;
 
   /*
@@ -97,12 +97,12 @@ public abstract class AbstractDrawing implements Drawable, ImageObserver {
     return id;
   }
 
-  public void setLayer(Zone.Layer layer) {
-    this.layer = layer != null ? layer.name() : null;
+  public void setLayer(Layer layer) {
+    this.layer = layer;
   }
 
-  public Zone.Layer getLayer() {
-    return layer != null ? Zone.Layer.valueOf(layer) : Zone.Layer.BACKGROUND;
+  public Layer getLayer() {
+    return layer;
   }
 
   public String getName() {

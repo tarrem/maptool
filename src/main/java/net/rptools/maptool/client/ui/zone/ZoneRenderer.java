@@ -85,32 +85,11 @@ import net.rptools.maptool.client.ui.token.NewTokenDialog;
 import net.rptools.maptool.client.walker.ZoneWalker;
 import net.rptools.maptool.client.walker.astar.AStarCellPoint;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.AbstractPoint;
-import net.rptools.maptool.model.Asset;
-import net.rptools.maptool.model.AssetManager;
-import net.rptools.maptool.model.CellPoint;
-import net.rptools.maptool.model.ExposedAreaMetaData;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Grid;
-import net.rptools.maptool.model.GridCapabilities;
-import net.rptools.maptool.model.IsometricGrid;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Label;
-import net.rptools.maptool.model.LightSource;
-import net.rptools.maptool.model.LookupTable;
 import net.rptools.maptool.model.LookupTable.LookupEntry;
-import net.rptools.maptool.model.MacroButtonProperties;
-import net.rptools.maptool.model.ModelChangeEvent;
-import net.rptools.maptool.model.ModelChangeListener;
-import net.rptools.maptool.model.Path;
-import net.rptools.maptool.model.Player;
-import net.rptools.maptool.model.TextMessage;
-import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Token.TerrainModifierOperation;
 import net.rptools.maptool.model.Token.TokenShape;
-import net.rptools.maptool.model.TokenFootprint;
-import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.Zone.Layer;
-import net.rptools.maptool.model.ZonePoint;
 import net.rptools.maptool.model.drawing.Drawable;
 import net.rptools.maptool.model.drawing.DrawableNoise;
 import net.rptools.maptool.model.drawing.DrawableTexturePaint;
@@ -158,8 +137,8 @@ public class ZoneRenderer extends JComponent
   private final DrawableRenderer tokenDrawableRenderer = new PartitionedDrawableRenderer();
   private final DrawableRenderer gmDrawableRenderer = new PartitionedDrawableRenderer();
   private final List<ZoneOverlay> overlayList = new ArrayList<ZoneOverlay>();
-  private final Map<Zone.Layer, List<TokenLocation>> tokenLocationMap =
-      new HashMap<Zone.Layer, List<TokenLocation>>();
+  private final Map<Layer, List<TokenLocation>> tokenLocationMap =
+      new HashMap<Layer, List<TokenLocation>>();
   private Set<GUID> selectedTokenSet = new LinkedHashSet<GUID>();
   private boolean keepSelectedTokenSet = false;
   private final List<Set<GUID>> selectedTokenSetHistory = new ArrayList<Set<GUID>>();
@@ -181,7 +160,7 @@ public class ZoneRenderer extends JComponent
   private Token tokenUnderMouse;
 
   private ScreenPoint pointUnderMouse;
-  private Zone.Layer activeLayer;
+  private Layer activeLayer;
   private String loadingProgress;
   private boolean isLoaded;
   private BufferedImage fogBuffer;
@@ -1219,7 +1198,7 @@ public class ZoneRenderer extends JComponent
       renderBoard(g2d, view);
       timer.stop("board");
     }
-    if (Zone.Layer.BACKGROUND.isEnabled()) {
+    if (Layer.LayerType.BACKGROUND.isEnabled()) {
       List<DrawnElement> drawables = zone.getBackgroundDrawnElements();
       // if (!drawables.isEmpty()) {
       timer.start("drawableBackground");
@@ -1233,7 +1212,7 @@ public class ZoneRenderer extends JComponent
         timer.stop("tokensBackground");
       }
     }
-    if (Zone.Layer.OBJECT.isEnabled()) {
+    if (Layer.LayerType.OBJECT.isEnabled()) {
       // Drawables on the object layer are always below the grid, and...
       List<DrawnElement> drawables = zone.getObjectDrawnElements();
       // if (!drawables.isEmpty()) {
@@ -1246,7 +1225,7 @@ public class ZoneRenderer extends JComponent
     renderGrid(g2d, view);
     timer.stop("grid");
 
-    if (Zone.Layer.OBJECT.isEnabled()) {
+    if (Layer.LayerType.OBJECT.isEnabled()) {
       // ... Images on the object layer are always ABOVE the grid.
       List<Token> stamps = zone.getStampTokens(false);
       if (!stamps.isEmpty()) {
@@ -1255,7 +1234,7 @@ public class ZoneRenderer extends JComponent
         timer.stop("tokensStamp");
       }
     }
-    if (Zone.Layer.TOKEN.isEnabled()) {
+    if (Layer.LayerType.TOKEN.isEnabled()) {
       timer.start("lights");
       renderLights(g2d, view);
       timer.stop("lights");
@@ -1286,7 +1265,7 @@ public class ZoneRenderer extends JComponent
      *   <li>Render Token-layer tokens
      * </ol>
      */
-    if (Zone.Layer.TOKEN.isEnabled()) {
+    if (Layer.LayerType.TOKEN.isEnabled()) {
       List<DrawnElement> drawables = zone.getDrawnElements();
       // if (!drawables.isEmpty()) {
       timer.start("drawableTokens");
@@ -1294,7 +1273,7 @@ public class ZoneRenderer extends JComponent
       timer.stop("drawableTokens");
       // }
 
-      if (view.isGMView() && Zone.Layer.GM.isEnabled()) {
+      if (view.isGMView() && Layer.LayerType.GM.isEnabled()) {
         drawables = zone.getGMDrawnElements();
         // if (!drawables.isEmpty()) {
         timer.start("drawableGM");
@@ -1352,7 +1331,7 @@ public class ZoneRenderer extends JComponent
       renderFog(g2d, view);
     }
 
-    if (Zone.Layer.TOKEN.isEnabled()) {
+    if (Layer.LayerType.TOKEN.isEnabled()) {
       // Jamz: If there is fog or vision we may need to re-render vision-blocking type tokens
       // For example. this allows a "door" stamp to block vision but still allow you to see the
       // door.
@@ -1418,7 +1397,7 @@ public class ZoneRenderer extends JComponent
     timer.stop("renderCoordinates");
 
     timer.start("lightSourceIconOverlay.paintOverlay");
-    if (Zone.Layer.TOKEN.isEnabled() && view.isGMView() && AppState.isShowLightSources()) {
+    if (Layer.LayerType.TOKEN.isEnabled() && view.isGMView() && AppState.isShowLightSources()) {
       lightSourceIconOverlay.paintOverlay(this, g2d);
     }
     timer.stop("lightSourceIconOverlay.paintOverlay");
@@ -2164,7 +2143,7 @@ public class ZoneRenderer extends JComponent
         continue;
       }
       // Hide the hidden layer
-      if (keyToken.getLayer() == Zone.Layer.GM && !view.isGMView()) {
+      if (keyToken.getLayer().getLayerType() == Layer.LayerType.GM && !view.isGMView()) {
         continue;
       }
       ZoneWalker walker = set.getWalker();
@@ -2869,8 +2848,9 @@ public class ZoneRenderer extends JComponent
     return list;
   }
 
-  public Zone.Layer getActiveLayer() {
-    return activeLayer != null ? activeLayer : Zone.Layer.TOKEN;
+  // TODO handle null layer
+  public Layer getActiveLayer() {
+    return activeLayer;
   }
 
   /**
@@ -2878,7 +2858,7 @@ public class ZoneRenderer extends JComponent
    *
    * @param layer the layer to set active
    */
-  public void setActiveLayer(Zone.Layer layer) {
+  public void setActiveLayer(Layer layer) {
     activeLayer = layer;
 
     if (!keepSelectedTokenSet && !selectedTokenSet.isEmpty()) {
@@ -2894,7 +2874,7 @@ public class ZoneRenderer extends JComponent
    * Get the token locations for the given layer, creates an empty list if there are not locations
    * for the given layer
    */
-  private List<TokenLocation> getTokenLocations(Zone.Layer layer) {
+  private List<TokenLocation> getTokenLocations(Layer layer) {
     return tokenLocationMap.computeIfAbsent(layer, k -> new LinkedList<>());
   }
 
@@ -3116,7 +3096,7 @@ public class ZoneRenderer extends JComponent
         // System.out.println(token.getName() + " - " + location.boundsCache);
 
         Set<Token> tokenStackSet = null;
-        for (TokenLocation currLocation : getTokenLocations(Zone.Layer.TOKEN)) {
+        for (TokenLocation currLocation : getTokenLocations(token.getLayer())) {
           // Are we covering anyone ?
           // System.out.println("\t" + currLocation.token.getName() + " - " +
           // location.boundsCache.contains(currLocation.boundsCache));
@@ -3144,7 +3124,7 @@ public class ZoneRenderer extends JComponent
       // Keep track of the location on the screen
       // Note the order -- the top most token is at the end of the list
       timer.start("renderTokens:Locations");
-      Zone.Layer layer = token.getLayer();
+      Layer layer = token.getLayer();
       List<TokenLocation> locationList = getTokenLocations(layer);
       if (locationList != null) {
         locationList.add(location);
@@ -4390,7 +4370,7 @@ public class ZoneRenderer extends JComponent
         Set<TerrainModifierOperation> terrainModifiersIgnored = token.getTerrainModifiersIgnored();
 
         // Skip AI Pathfinding if not on the token layer...
-        if (!ZoneRenderer.this.getActiveLayer().equals(Layer.TOKEN)) {
+        if (!ZoneRenderer.this.getActiveLayer().equals(Layer.LayerType.TOKEN)) {
           restictMovement = false;
         }
 
@@ -4624,7 +4604,7 @@ public class ZoneRenderer extends JComponent
 
       // Token type
       Rectangle size = token.getBounds(zone);
-      switch (getActiveLayer()) {
+      switch (getActiveLayer().getLayerType()) {
         case TOKEN:
           // Players can't drop invisible tokens
           token.setVisible(!isGM || AppPreferences.getNewTokensVisible());
@@ -4674,7 +4654,7 @@ public class ZoneRenderer extends JComponent
         Token tokenNameUsed = zone.getTokenByName(token.getName());
         token.setName(MapToolUtil.nextTokenId(zone, token, tokenNameUsed != null));
 
-        if (getActiveLayer() == Zone.Layer.TOKEN) {
+        if (getActiveLayer().getLayerType() == Layer.LayerType.TOKEN) {
           if (AppPreferences.getShowDialogOnNewToken() || showDialog) {
             NewTokenDialog dialog = new NewTokenDialog(token, dropPoint.x, dropPoint.y);
             dialog.showDialog();

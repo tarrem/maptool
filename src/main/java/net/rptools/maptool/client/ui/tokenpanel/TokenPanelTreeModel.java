@@ -31,10 +31,7 @@ import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.ModelChangeEvent;
-import net.rptools.maptool.model.ModelChangeListener;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.server.ServerPolicy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,27 +52,27 @@ public class TokenPanelTreeModel implements TreeModel, ModelChangeListener {
   public enum View {
     // @formatter:off
     // I18N key						Zone.Layer					Req'd?	isAdmin?
-    TOKENS(_TOKENS, Zone.Layer.TOKEN, false, false),
-    PLAYERS(_PLAYERS, Zone.Layer.TOKEN, false, false),
-    GROUPS(_GROUPS, Zone.Layer.TOKEN, false, false),
-    GM(_GM, Zone.Layer.GM, false, true),
-    OBJECTS(_OBJECTS, Zone.Layer.OBJECT, false, true),
-    BACKGROUND(_BACKGROUND, Zone.Layer.BACKGROUND, false, true),
-    CLIPBOARD(_CLIPBOARD, Zone.Layer.TOKEN, false, true),
+    TOKENS(_TOKENS, Layer.LayerType.TOKEN, false, false),
+    PLAYERS(_PLAYERS, Layer.LayerType.TOKEN, false, false),
+    GROUPS(_GROUPS, Layer.LayerType.TOKEN, false, false),
+    GM(_GM, Layer.LayerType.GM, false, true),
+    OBJECTS(_OBJECTS, Layer.LayerType.OBJECT, false, true),
+    BACKGROUND(_BACKGROUND, Layer.LayerType.BACKGROUND, false, true),
+    CLIPBOARD(_CLIPBOARD, Layer.LayerType.TOKEN, false, true),
     LIGHT_SOURCES(_LIGHT_SOURCES, null, false, false);
     // @formatter:on
 
     String displayName;
     String description;
     boolean required;
-    Zone.Layer layer;
+    Layer.LayerType layerType;
     boolean isAdmin;
 
-    View(String key, Zone.Layer layer, boolean required, boolean isAdmin) {
+    View(String key, Layer.LayerType layerType, boolean required, boolean isAdmin) {
       this.displayName = I18N.getText(key);
       this.description = null; // I18N.getDescription(key); // TODO Tooltip -- not currently used
       this.required = required;
-      this.layer = layer;
+      this.layerType = layerType;
       this.isAdmin = isAdmin;
     }
 
@@ -87,8 +84,8 @@ public class TokenPanelTreeModel implements TreeModel, ModelChangeListener {
       return description;
     }
 
-    public Zone.Layer getLayer() {
-      return layer;
+    public Layer.LayerType getLayer() {
+      return layerType;
     }
 
     public boolean isRequired() {

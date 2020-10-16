@@ -257,7 +257,7 @@ Changes since 1.7.0-beta-2 in **BOLD**.
 - [#1814][i1814] Several macro functions would fail as not trusted when called by GM in chat. Fixed.
 - [#1812][i1812] Call a macro on the GM panel from a trusted context wasn't keeping trusted status. Fixed.
 - [#1804][i1804] Map selector reworked to behave like a normal popup menu and be theme compliant.
-- [#1803][i1803] PC Tokens on Hidden layer were visible on Player's Map Explorer when Strict Token Ownership was off. Fixed.
+- [#1803][i1803] PC Tokens on Hidden layerType were visible on Player's Map Explorer when Strict Token Ownership was off. Fixed.
 - [#1799][i1799] Light segments for Light defitions in the results of `getInfo("campaign")` was malformed. Fixed.
 - [#1790][i1790] Several dialogs had text that was hardcoded to the Tahoma font which doesn't support CJK characters. Fixed.
 - [#1788][i1788] Pressing delete key with Draw Explorer active and no drawings would throw NPE. Fixed.
@@ -271,7 +271,7 @@ Changes since 1.7.0-beta-2 in **BOLD**.
 - [#1720][i1720] Token properties with default values were not having spaces trimmed from name. Fixed.
 - [#1709][i1709] Portrait images were rendered with low quality scaling. Improved.
 - [#1700][i1700] Tokens/stamps showing as "?" image until map is updated. Fixed.
-- [#1688][i1688] Figure tokens and tokens flagged as Visible over FoW on hidden layer were visible to players. Fixed.
+- [#1688][i1688] Figure tokens and tokens flagged as Visible over FoW on hidden layerType were visible to players. Fixed.
 - [#1686][i1686] Crowdin configuration file was display as option in Preferences -> Language. Fixed.
 - [#1675][i1675] Left-click on a token when multiple are already selected wasn't clearing selection on other tokens. Fixed.
 - [#1670][i1670] ModelChangeListeners on Impersonate/Selection panels were not getting removed causing a performance hit as more maps were added to campaign. Fixed.
@@ -465,7 +465,7 @@ Lots of enhancements, bug fixes and improvements to the code base.
 **Bug Fixes**
 - [#1477][i1477] HTML5 form submission ignored *novalidate* and *formnovalidate* attributes. Fixed.
 - [#1472][i1472] `getInfo("campaign")` was not returning all states. Fixed.
-- [#1469][i1469] Cursor offset when dragging snap-to-grid tokens on background layer. Fixed.
+- [#1469][i1469] Cursor offset when dragging snap-to-grid tokens on background layerType. Fixed.
 - [#1468][i1468] onChangeSelection event was firing multiple times per selection action. Fixed.
 - [#1460][i1460] Uncaught cases in switch statement produces unhelpful error message. Fixed.
 - [#1456][i1456] Pressing Enter in an HTML control loses focus - fixed.
@@ -493,7 +493,7 @@ Lots of enhancements, bug fixes and improvements to the code base.
 - [#1225][i1225] Exception during L&F setup. Not in released code. Fixed.
 - [#1217][i1217] Moving tokens or measuring across long distance (200+ cells) performed poorly. Fixed.
 - [#1206][i1206] JSON function code was returning NULL if the function couldn't be found. Now reports unknown function.
-- [#1204][i1204] `getToken*` was throwing an exception if a string was passed to the `layer` option. Fixed.
+- [#1204][i1204] `getToken*` was throwing an exception if a string was passed to the `layerType` option. Fixed.
 - [#1092][i1092] Token States, Bars, and Halos weren't rotating properly with off-center, top-down tokens. Fixed.
 - [#1049][i1049] Token VBL wasn't rotating properly with off-center, top-down tokens. Fixed.
 - [#650][i650] Can't pass JSON data from a form submit. Fixed.
@@ -605,7 +605,7 @@ Maptool 1.5.13
 - [#1236][i1236] `getTokens/getTokenNames()` was failing if `setState` or `unsetState` options were used. Fixed.
 - [#1228][i1228] `getLastPath()` and other token move functions that made use of pathPointsToJsonArray were broken. Fixed.
 - [#1206][i1206] Unknown json functions would return null instead of an error. Fixed.
-- [#1204][i1204] Layer condition of `getTokens/getTokenNames()` weren't accepting accepting a string for a single layer. Fixed.
+- [#1204][i1204] Layer condition of `getTokens/getTokenNames()` weren't accepting accepting a string for a single layerType. Fixed.
 
 [i1296]: https://github.com/RPTools/maptool/issues/1296
 [i1236]: https://github.com/RPTools/maptool/issues/1236
@@ -751,7 +751,7 @@ Bug Fixes
 - [#923][i923] Using Edit Map on a map with an adjusted grid would lose offset adjustment. Fixed.
 - [#920][i920] The RPTools logo was being loaded across the net each time for use in the MacOS dock. Fixed.
 - [#892][i892] Panels could be permanently checked in Window menu but not visible. Fixed.
-- [#796][i796] Drawing a selection box on layers other than the Token layer ignored the "Fill selection box" preference. Fixed.
+- [#796][i796] Drawing a selection box on layers other than the Token layerType ignored the "Fill selection box" preference. Fixed.
 - [#739][i739] Initiative info was being returned by `getInfo("client")` and `getInfo("server")`. Removed from `server` option.
 - [#722][i722] Find/replace action in Macro editor didn't give a Replace option.  Fixed.
 - [#272][i272] Display area for memory usage didn't adapt to larger font sizes and string length. Fixed.
@@ -1068,7 +1068,7 @@ Bug Fixes & Enhancements
 * [#573][i573] - MapTool credits in Help -> About window updated.
 * [#569][i569] - Documented undocumented parameters of getPropertyDefault and setLayer.  Fixed NPE caused when getPropertyDefault is given only one parameter and there is no current token.
   * getPropertyDefault() - Accepts second parameter for Token (Property) Type and returns the default for that type.
-  * setLayer() - A third parameter, forceShape, forces tokens to be of type Top Down if moved to Object layer and to either Circle or Square for the token layer.
+  * setLayer() - A third parameter, forceShape, forces tokens to be of type Top Down if moved to Object layerType and to either Circle or Square for the token layerType.
 * [#563][i563] - Additional parameter map name added to getState, setState, and setAllStates macro functions.
 * [#560][i560] - Corrected error message if setZoom() was passed argument.
 * [#558][i558] - Popup notes for Hidden/Object tokens did not include the GM name if only player notes field had content and if only the GM notes had content no name was shown.  Fixed.
@@ -1374,7 +1374,7 @@ Enhancements
 A new token config value is also now available called Terrain Modifier. This multiplies the cost of moving into that tokens cell and taken into account with Pathfinding is used. Some examples are:
 Setting the multiplier to 2 will cost 10 feet of movement vs 5 feet acting like difficult terrain.
 Setting the multiplier to a sufficiently high number, like 99999, will effectively block the movement and make the token go around the obstacle. Useful for things like an arrow slit, window, lava, etc.
-Any token can have this modifier, NPC tokens to make PC tokens go around them vs through them, or stamp tokens on the object layer like oil or water. You could also place tokens on the hidden layer over rocky terrain to denote difficult terrain.
+Any token can have this modifier, NPC tokens to make PC tokens go around them vs through them, or stamp tokens on the object layerType like oil or water. You could also place tokens on the hidden layerType over rocky terrain to denote difficult terrain.
 Please note, at this time no macros are available to access these new feature, nor server options to force players to use this mode of moving tokens. Due to the complexity of this feature, I felt it better to get this out to you, the user, to play with and use (or not use) and provide feedback. Therefore the Terrain Modifier *could* change in the future or expand in functionality. There could be performance related hits as well, although I did my best to mitigate this, as well as you can turn this feature off and revert to basic movement.
 Also note, currently fractional modifiers are not supported at this time nor straight addition modifiers. I plan to expand this functionality over time.
 * [#45][i45] - Lighting has been improved to greatly reduce lag when multiple light sources are on a map. It also helps alleviate the slowness you encounter as you reveal more and more FoW.

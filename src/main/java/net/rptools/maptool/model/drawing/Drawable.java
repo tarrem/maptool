@@ -17,7 +17,7 @@ package net.rptools.maptool.model.drawing;
 import java.awt.Graphics2D;
 import java.awt.geom.Area;
 import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.Layer;
 
 /** @author drice */
 public interface Drawable {
@@ -29,7 +29,7 @@ public interface Drawable {
 
   public GUID getId();
 
-  public Zone.Layer getLayer();
+  public Layer getLayer();
 
-  public void setLayer(Zone.Layer layer);
+  public void setLayer(Layer layer);
 }

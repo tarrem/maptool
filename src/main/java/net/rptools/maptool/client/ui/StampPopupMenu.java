@@ -20,8 +20,8 @@ import javax.swing.JSeparator;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.model.GUID;
+import net.rptools.maptool.model.Layer;
 import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
 
 public class StampPopupMenu extends AbstractTokenPopupMenu {
   private static final long serialVersionUID = -1355308966041002520L;
@@ -36,9 +36,7 @@ public class StampPopupMenu extends AbstractTokenPopupMenu {
     add(createFlipMenu());
     add(createSizeMenu());
     add(createArrangeMenu());
-    add(
-        createChangeToMenu(
-            Zone.Layer.TOKEN, Zone.Layer.GM, Zone.Layer.OBJECT, Zone.Layer.BACKGROUND));
+    add(createChangeToMenu((Layer[]) renderer.getZone().getLayerList().toArray()));
     if (getTokenUnderMouse().getCharsheetImage() != null
         && AppUtil.playerOwns(getTokenUnderMouse())) {
       add(new ShowHandoutAction());

@@ -44,7 +44,6 @@ import net.rptools.maptool.client.ui.zone.PlayerView;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Player.Role;
-import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.model.Zone.VisionType;
 import net.rptools.maptool.util.GraphicsUtil;
 import net.rptools.maptool.util.ImageManager;
@@ -88,13 +87,13 @@ public class PointerTool extends DefaultTool {
   private final TokenStackPanel tokenStackPanel = new TokenStackPanel();
   private final HTMLPanelRenderer htmlRenderer = new HTMLPanelRenderer();
   private final Font boldFont = AppStyle.labelFont.deriveFont(Font.BOLD);
-  private final LayerSelectionDialog layerSelectionDialog;
+  private LayerSelectionDialog layerSelectionDialog;
 
   private BufferedImage statSheet;
   private Token tokenOnStatSheet;
 
-  private static int PADDING = 7;
-  private static int STATSHEET_EXTERIOR_PADDING = 5;
+  private static final int PADDING = 7;
+  private static final int STATSHEET_EXTERIOR_PADDING = 5;
 
   // Offset from token's X,Y when dragging. Values are in zone coordinates.
   private int dragOffsetX = 0;
@@ -118,33 +117,44 @@ public class PointerTool extends DefaultTool {
 
     layerSelectionDialog =
         new LayerSelectionDialog(
-            new Zone.Layer[] {
-              Zone.Layer.TOKEN, Zone.Layer.GM, Zone.Layer.OBJECT, Zone.Layer.BACKGROUND
-            },
-            layer -> {
-              if (renderer != null) {
-                renderer.setActiveLayer(layer);
-                MapTool.getFrame().setLastSelectedLayer(layer);
-
-                if (layer != Layer.TOKEN) {
-                  MapTool.getFrame().getToolbox().setSelectedTool(StampTool.class);
-                }
-              }
-            });
+            new Layer[] {new Layer("Placeholder Pointer Layer", Layer.LayerType.TOKEN)},
+            layer -> {});
   }
 
   @Override
   protected void attachTo(ZoneRenderer renderer) {
     super.attachTo(renderer);
 
+    htmlRenderer.attach(renderer);
+
+    if (MapTool.getFrame().getLastSelectedLayer().getLayerType() != Layer.LayerType.TOKEN) {
+      MapTool.getFrame().getToolbox().setSelectedTool(StampTool.class);
+    }
+
+    layerSelectionDialog =
+        new LayerSelectionDialog(
+            renderer.getZone().getLayerList().toArray(new Layer[0]),
+            layer -> {
+              if (renderer != null) {
+                System.out.println("Active layer: " + layer.getDisplayName());
+                if (renderer.getActiveLayer() == null) {
+
+                  System.out.println("Default Active layer: " + layer.getDisplayName());
+
+                  renderer.setActiveLayer(layer);
+                  MapTool.getFrame().setLastSelectedLayer(layer);
+                } else {
+                  layerSelectionDialog.setSelectedLayer(renderer.getActiveLayer());
+                }
+
+                if (layer.getLayerType() != Layer.LayerType.TOKEN) {
+                  MapTool.getFrame().getToolbox().setSelectedTool(StampTool.class);
+                }
+              }
+            });
+    layerSelectionDialog.updateViewList();
     if (MapTool.getPlayer().isGM()) {
       MapTool.getFrame().showControlPanel(layerSelectionDialog);
-    }
-    htmlRenderer.attach(renderer);
-    layerSelectionDialog.updateViewList();
-
-    if (MapTool.getFrame().getLastSelectedLayer() != Zone.Layer.TOKEN) {
-      MapTool.getFrame().getToolbox().setSelectedTool(StampTool.class);
     }
   }
 

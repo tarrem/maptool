@@ -54,7 +54,7 @@
           <at name="classname">com.jeta.forms.components.label.JETALabel</at>
           <at name="properties">
            <object classname="com.jeta.forms.store.support.PropertyMap">
-            <at name="text">Label.layer</at>
+            <at name="text">Label.layerType</at>
             <at name="height">15</at>
             <at name="width">1144</at>
             <at name="name"></at>
@@ -121,7 +121,7 @@
              </object>
             </at>
             <at name="width">1144</at>
-            <at name="name">layerList</at>
+            <at name="name">layerTypeList</at>
             <at name="scollBars">
              <object classname="com.jeta.forms.store.properties.ScrollBarsProperty">
               <at name="name">scollBars</at>

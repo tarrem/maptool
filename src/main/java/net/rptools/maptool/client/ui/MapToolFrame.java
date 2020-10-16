@@ -95,13 +95,7 @@ import net.rptools.maptool.client.ui.zone.PointerToolOverlay;
 import net.rptools.maptool.client.ui.zone.ZoneMiniMapPanel;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.Asset;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.Zone.Layer;
-import net.rptools.maptool.model.ZoneFactory;
-import net.rptools.maptool.model.ZonePoint;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
 import net.rptools.maptool.model.drawing.DrawablePaint;
 import net.rptools.maptool.model.drawing.DrawableTexturePaint;
@@ -200,7 +194,7 @@ public class MapToolFrame extends DefaultDockableHolder
   private JFileChooser saveTokenFileChooser;
 
   /** Remember the last layer selected */
-  private Layer lastSelectedLayer = Zone.Layer.TOKEN;
+  private Layer lastSelectedLayer;
 
   private final FileFilter campaignFilter =
       new MTFileFilter("cmpgn", I18N.getText("file.ext.cmpgn"));
@@ -908,6 +902,8 @@ public class MapToolFrame extends DefaultDockableHolder
   }
 
   public Layer getLastSelectedLayer() {
+    if (lastSelectedLayer == null)
+      lastSelectedLayer = currentRenderer.getZone().getLayerList().getLayer(Layer.LayerType.TOKEN);
     return lastSelectedLayer;
   }
 

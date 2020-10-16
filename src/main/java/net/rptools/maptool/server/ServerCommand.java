@@ -18,21 +18,9 @@ import java.awt.geom.Area;
 import java.util.List;
 import java.util.Set;
 import net.rptools.lib.MD5Key;
-import net.rptools.maptool.model.Asset;
-import net.rptools.maptool.model.Campaign;
-import net.rptools.maptool.model.CampaignProperties;
-import net.rptools.maptool.model.ExposedAreaMetaData;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.InitiativeList;
-import net.rptools.maptool.model.Label;
-import net.rptools.maptool.model.MacroButtonProperties;
-import net.rptools.maptool.model.Pointer;
-import net.rptools.maptool.model.TextMessage;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Zone.TopologyMode;
 import net.rptools.maptool.model.Zone.VisionType;
-import net.rptools.maptool.model.ZonePoint;
 import net.rptools.maptool.model.drawing.Drawable;
 import net.rptools.maptool.model.drawing.DrawnElement;
 import net.rptools.maptool.model.drawing.Pen;
@@ -201,7 +189,7 @@ public interface ServerCommand {
 
   public void bringTokensToFront(GUID zoneGUID, Set<GUID> tokenSet);
 
-  public void clearAllDrawings(GUID zoneGUID, Zone.Layer layer);
+  public void clearAllDrawings(GUID zoneGUID, Layer.LayerType layerType);
 
   public void enforceZone(GUID zoneGUID);
 

@@ -225,7 +225,7 @@ public class Token extends BaseModel implements Cloneable {
   private String tokenShape;
   private String tokenType;
   private String layer;
-  private transient Zone.Layer actualLayer;
+  private transient Layer actualLayer;
 
   private String propertyType = Campaign.DEFAULT_TOKEN_PROPERTY_TYPE;
 
@@ -705,23 +705,23 @@ public class Token extends BaseModel implements Cloneable {
   }
 
   public boolean isObjectStamp() {
-    return getLayer() == Zone.Layer.OBJECT;
+    return getLayer().getLayerType() == Layer.LayerType.OBJECT;
   }
 
   public boolean isGMStamp() {
-    return getLayer() == Zone.Layer.GM;
+    return getLayer().getLayerType() == Layer.LayerType.GM;
   }
 
   public boolean isBackgroundStamp() {
-    return getLayer() == Zone.Layer.BACKGROUND;
+    return getLayer().getLayerType() == Layer.LayerType.BACKGROUND;
   }
 
   public boolean isOnTokenLayer() {
-    return getLayer() == Zone.Layer.TOKEN;
+    return getLayer().getLayerType() == Layer.LayerType.TOKEN;
   }
 
   public boolean isStamp() {
-    switch (getLayer()) {
+    switch (getLayer().getLayerType()) {
       case BACKGROUND:
       case OBJECT:
       case GM:
@@ -733,7 +733,7 @@ public class Token extends BaseModel implements Cloneable {
   }
 
   public boolean isToken() {
-    return getLayer() == Zone.Layer.TOKEN;
+    return getLayer().getLayerType() == Layer.LayerType.TOKEN;
   }
 
   public TokenShape getShape() {
@@ -768,19 +768,13 @@ public class Token extends BaseModel implements Cloneable {
     }
   }
 
-  public Zone.Layer getLayer() {
-    try {
-      if (actualLayer == null) {
-        actualLayer = layer != null ? Zone.Layer.valueOf(layer) : Zone.Layer.TOKEN;
-      }
-      return actualLayer;
-    } catch (IllegalArgumentException iae) {
-      return Zone.Layer.TOKEN;
-    }
+  // TODO test
+  public Layer getLayer() {
+    return actualLayer;
   }
 
-  public void setLayer(Zone.Layer layer) {
-    this.layer = layer.name();
+  public void setLayer(Layer layer) {
+    this.layer = layer.getDisplayName();
     actualLayer = layer;
   }
 
@@ -2438,10 +2432,10 @@ public class Token extends BaseModel implements Cloneable {
         setType(Type.NPC);
         break;
       case setLayer:
-        setLayer((Zone.Layer) parameters[0]);
+        setLayer((Layer) parameters[0]);
         break;
       case setLayerShape:
-        setLayer((Zone.Layer) parameters[0]);
+        setLayer((Layer) parameters[0]);
         setShape((TokenShape) parameters[1]);
         break;
       case setShape:

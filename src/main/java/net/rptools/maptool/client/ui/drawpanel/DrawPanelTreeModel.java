@@ -28,6 +28,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.language.I18N;
+import net.rptools.maptool.model.Layer;
 import net.rptools.maptool.model.ModelChangeEvent;
 import net.rptools.maptool.model.ModelChangeListener;
 import net.rptools.maptool.model.Zone;
@@ -46,25 +47,25 @@ public class DrawPanelTreeModel implements TreeModel, ModelChangeListener {
   private final List<TreeModelListener> listenerList = new ArrayList<TreeModelListener>();
 
   public enum View {
-    TOKEN_DRAWINGS("panel.DrawExplorer.View.TOKEN", Zone.Layer.TOKEN),
-    GM_DRAWINGS("panel.DrawExplorer.View.GM", Zone.Layer.GM),
-    OBJECT_DRAWINGS("panel.DrawExplorer.View.OBJECT", Zone.Layer.OBJECT),
-    BACKGROUND_DRAWINGS("panel.DrawExplorer.View.BACKGROUND", Zone.Layer.BACKGROUND);
+    TOKEN_DRAWINGS("panel.DrawExplorer.View.TOKEN", Layer.LayerType.TOKEN),
+    GM_DRAWINGS("panel.DrawExplorer.View.GM", Layer.LayerType.GM),
+    OBJECT_DRAWINGS("panel.DrawExplorer.View.OBJECT", Layer.LayerType.OBJECT),
+    BACKGROUND_DRAWINGS("panel.DrawExplorer.View.BACKGROUND", Layer.LayerType.BACKGROUND);
 
-    View(String key, Zone.Layer layer) {
+    View(String key, Layer.LayerType layerType) {
       this.displayName = I18N.getText(key);
-      this.layer = layer;
+      this.layerType = layerType;
     }
 
     String displayName;
-    Zone.Layer layer;
+    Layer.LayerType layerType;
 
     public String getDisplayName() {
       return displayName;
     }
 
-    public Zone.Layer getLayer() {
-      return layer;
+    public Layer.LayerType getLayer() {
+      return layerType;
     }
   }
 
@@ -212,7 +213,7 @@ public class DrawPanelTreeModel implements TreeModel, ModelChangeListener {
         }
       } else {
         // Players can only see templates on the token layer
-        drawableList = zone.getDrawnElements(Zone.Layer.TOKEN);
+        drawableList = zone.getDrawnElements(Layer.LayerType.TOKEN);
         if (drawableList.size() > 0) {
           // Reverse the list so that the element drawn last, is shown at the top of the tree
           // Be careful to clone the list so you don't damage the map

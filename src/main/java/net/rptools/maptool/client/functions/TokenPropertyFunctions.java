@@ -32,11 +32,7 @@ import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.Grid;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.TokenFootprint;
-import net.rptools.maptool.model.TokenProperty;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.maptool.util.ImageManager;
 import net.rptools.maptool.util.StringUtil;
@@ -225,7 +221,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
     if (functionName.equals("getLayer")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
-      return token.getLayer().name();
+      return token.getLayer().getDisplayName();
     }
 
     /*
@@ -916,18 +912,9 @@ public class TokenPropertyFunctions extends AbstractFunction {
    * @throws ParserException if the layer name is invalid.
    * @return the Zone.Layer corresponding to the layerName
    */
-  public static Zone.Layer getLayer(String layerName) throws ParserException {
-    Zone.Layer layer;
-    if (layerName.equalsIgnoreCase(Zone.Layer.TOKEN.toString())) {
-      layer = Zone.Layer.TOKEN;
-    } else if (layerName.equalsIgnoreCase(Zone.Layer.BACKGROUND.toString())) {
-      layer = Zone.Layer.BACKGROUND;
-    } else if (layerName.equalsIgnoreCase("gm")
-        || layerName.equalsIgnoreCase(Zone.Layer.GM.toString())) {
-      layer = Zone.Layer.GM;
-    } else if (layerName.equalsIgnoreCase(Zone.Layer.OBJECT.toString())) {
-      layer = Zone.Layer.OBJECT;
-    } else {
+  public static Layer getLayer(Zone zone, String layerName) throws ParserException {
+    Layer layer = zone.getLayerList().getLayer(layerName);
+    if (layer == null) {
       throw new ParserException(
           I18N.getText("macro.function.tokenProperty.unknownLayer", "setLayer", layerName));
     }
@@ -943,10 +930,10 @@ public class TokenPropertyFunctions extends AbstractFunction {
    * @param forceShape should we even get a new shape?
    * @return the new TokenShape of the token
    */
-  public static Token.TokenShape getTokenShape(Token token, Zone.Layer layer, boolean forceShape) {
+  public static Token.TokenShape getTokenShape(Token token, Layer layer, boolean forceShape) {
     Token.TokenShape tokenShape = null;
     if (forceShape) {
-      switch (layer) {
+      switch (layer.getLayerType()) {
         case BACKGROUND:
         case OBJECT:
           tokenShape = Token.TokenShape.TOP_DOWN;
@@ -976,7 +963,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
    */
   private static String setLayer(Token token, String layerName, boolean forceShape)
       throws ParserException {
-    Zone.Layer layer = getLayer(layerName);
+    Layer layer = getLayer(token.getZoneRenderer().getZone(), layerName);
     Token.TokenShape tokenShape = getTokenShape(token, layer, forceShape);
 
     if (tokenShape != null) {

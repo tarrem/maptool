@@ -25,13 +25,7 @@ import net.rptools.maptool.client.MapToolUtil;
 import net.rptools.maptool.client.MapToolVariableResolver;
 import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.CellPoint;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Grid;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.TokenFootprint;
-import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.ZonePoint;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
@@ -190,7 +184,7 @@ public class TokenCopyDeleteFunctions extends AbstractFunction {
         BigDecimal val = new BigDecimal(value);
         forceShape = !BigDecimal.ZERO.equals(val);
       }
-      Zone.Layer layer = TokenPropertyFunctions.getLayer(newVals.get("layer").getAsString());
+      Layer layer = TokenPropertyFunctions.getLayer(zone, newVals.get("layer").getAsString());
       Token.TokenShape tokenShape = TokenPropertyFunctions.getTokenShape(token, layer, forceShape);
       token.setLayer(layer);
       if (tokenShape != null) {

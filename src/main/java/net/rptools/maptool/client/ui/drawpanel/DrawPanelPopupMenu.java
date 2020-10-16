@@ -39,6 +39,7 @@ import net.rptools.maptool.client.macro.MacroContext;
 import net.rptools.maptool.client.ui.AssetPaint;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.model.GUID;
+import net.rptools.maptool.model.Layer;
 import net.rptools.maptool.model.TextMessage;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.drawing.AbstractDrawing;
@@ -77,9 +78,9 @@ public class DrawPanelPopupMenu extends JPopupMenu {
     this.elementUnderMouse = elementUnderMouse;
     this.topLevelOnly = topLevelOnly;
 
-    addGMItem(
-        createChangeToMenu(
-            Zone.Layer.TOKEN, Zone.Layer.GM, Zone.Layer.OBJECT, Zone.Layer.BACKGROUND));
+    Zone.LayerList layerList = renderer.getZone().getLayerList();
+
+    addGMItem(createChangeToMenu((Layer[]) layerList.toArray()));
     addGMItem(createArrangeMenu());
     if (isDrawnElementGroup(elementUnderMouse)) {
       add(new UngroupDrawingsAction());
@@ -113,10 +114,10 @@ public class DrawPanelPopupMenu extends JPopupMenu {
     }
   }
 
-  private class ChangeTypeAction extends AbstractAction {
-    private final Zone.Layer layer;
+  private class ChangeAction extends AbstractAction {
+    private final Layer layer;
 
-    public ChangeTypeAction(Zone.Layer layer) {
+    public ChangeAction(Layer layer) {
       putValue(Action.NAME, layer.toString());
       this.layer = layer;
     }
@@ -197,7 +198,10 @@ public class DrawPanelPopupMenu extends JPopupMenu {
       enabled = selectedDrawSet.size() > 1;
       if (enabled) {
         List<DrawnElement> zoneList =
-            renderer.getZone().getDrawnElements(elementUnderMouse.getDrawable().getLayer());
+            // TODO change to layer
+            renderer
+                .getZone()
+                .getDrawnElements(elementUnderMouse.getDrawable().getLayer().getLayerType());
         for (GUID id : selectedDrawSet) {
           DrawnElement de = renderer.getZone().getDrawnElement(id);
           if (!zoneList.contains(de) || isDrawnElementTemplate(de)) {
@@ -246,7 +250,10 @@ public class DrawPanelPopupMenu extends JPopupMenu {
       enabled = selectedDrawSet.size() > 1;
       if (enabled) {
         List<DrawnElement> zoneList =
-            renderer.getZone().getDrawnElements(elementUnderMouse.getDrawable().getLayer());
+            // TODO change to layer
+            renderer
+                .getZone()
+                .getDrawnElements(elementUnderMouse.getDrawable().getLayer().getLayerType());
         for (GUID id : selectedDrawSet) {
           DrawnElement de = renderer.getZone().getDrawnElement(id);
           if (!zoneList.contains(de) || isDrawnElementGroup(de) || isDrawnElementTemplate(de)) {
@@ -456,11 +463,11 @@ public class DrawPanelPopupMenu extends JPopupMenu {
     return arrangeMenu;
   }
 
-  private JMenu createChangeToMenu(Zone.Layer... types) {
+  private JMenu createChangeToMenu(Layer[] layers) {
     JMenu changeTypeMenu = new JMenu("Change to");
     changeTypeMenu.setEnabled(topLevelOnly);
-    for (Zone.Layer layer : types) {
-      changeTypeMenu.add(new JMenuItem(new ChangeTypeAction(layer)));
+    for (Layer layer : layers) {
+      changeTypeMenu.add(new JMenuItem(new ChangeAction(layer)));
     }
     return changeTypeMenu;
   }

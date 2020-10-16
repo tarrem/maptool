@@ -27,6 +27,7 @@ import net.rptools.maptool.client.macro.MacroContext;
 import net.rptools.maptool.client.macro.MacroDefinition;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.GUID;
+import net.rptools.maptool.model.Layer;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
 import net.rptools.parser.ParserException;
@@ -117,7 +118,8 @@ public class SetTokenPropertyMacro implements Macro {
        * and trying to change properties figuring out that there is a token there because they are getting a different error message (benefit of the doubt only goes so far ;) )
        */
       if (!MapTool.getPlayer().isGM()) {
-        if ((!zone.isTokenVisible(token) || token.getLayer() == Zone.Layer.GM)) {
+        if ((!zone.isTokenVisible(token)
+            || token.getLayer().getLayerType() == Layer.LayerType.GM)) {
           token = null;
         }
         if (!token.isOwner(MapTool.getPlayer().getName())) {

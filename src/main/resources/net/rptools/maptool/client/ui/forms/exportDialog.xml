@@ -2372,7 +2372,7 @@
                  <at name="width">75</at>
                  <at name="name">LAYER_TOKEN</at>
                  <at name="actionCommand">Token</at>
-                 <at name="toolTipText">ExportScreenshot.view.layer.tooltip</at>
+                 <at name="toolTipText">ExportScreenshot.view.layerType.tooltip</at>
                  <at name="border">
                   <object classname="com.jeta.forms.store.properties.CompoundBorderProperty">
                    <super classname="com.jeta.forms.store.properties.BorderProperty">
@@ -2431,7 +2431,7 @@
                  <at name="width">75</at>
                  <at name="name">LAYER_HIDDEN</at>
                  <at name="actionCommand">Hidden</at>
-                 <at name="toolTipText">ExportScreenshot.view.layer.tooltip</at>
+                 <at name="toolTipText">ExportScreenshot.view.layerType.tooltip</at>
                  <at name="border">
                   <object classname="com.jeta.forms.store.properties.CompoundBorderProperty">
                    <super classname="com.jeta.forms.store.properties.BorderProperty">
@@ -2736,7 +2736,7 @@
                  <at name="width">75</at>
                  <at name="name">LAYER_OBJECT</at>
                  <at name="actionCommand">Object</at>
-                 <at name="toolTipText">ExportScreenshot.view.layer.tooltip</at>
+                 <at name="toolTipText">ExportScreenshot.view.layerType.tooltip</at>
                  <at name="border">
                   <object classname="com.jeta.forms.store.properties.CompoundBorderProperty">
                    <super classname="com.jeta.forms.store.properties.BorderProperty">
@@ -2795,7 +2795,7 @@
                  <at name="width">75</at>
                  <at name="name">LAYER_BACKGROUND</at>
                  <at name="actionCommand">Background</at>
-                 <at name="toolTipText">ExportScreenshot.view.layer.tooltip</at>
+                 <at name="toolTipText">ExportScreenshot.view.layerType.tooltip</at>
                  <at name="border">
                   <object classname="com.jeta.forms.store.properties.CompoundBorderProperty">
                    <super classname="com.jeta.forms.store.properties.BorderProperty">
@@ -2913,7 +2913,7 @@
                  <at name="width">57</at>
                  <at name="name">LAYER_VISIBILITY</at>
                  <at name="actionCommand">Visibility</at>
-                 <at name="toolTipText">ExportScreenshot.view.layer.vbl.tooltip</at>
+                 <at name="toolTipText">ExportScreenshot.view.layerType.vbl.tooltip</at>
                  <at name="border">
                   <object classname="com.jeta.forms.store.properties.CompoundBorderProperty">
                    <super classname="com.jeta.forms.store.properties.BorderProperty">

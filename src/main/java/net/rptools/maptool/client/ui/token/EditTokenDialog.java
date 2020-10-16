@@ -98,7 +98,6 @@ import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Token.TerrainModifierOperation;
 import net.rptools.maptool.model.Token.Type;
-import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.util.ExtractHeroLab;
 import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.maptool.util.ImageManager;
@@ -521,7 +520,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     JComboBox size = getSizeCombo();
     Grid grid = MapTool.getFrame().getCurrentZoneRenderer().getZone().getGrid();
     DefaultComboBoxModel model = new DefaultComboBoxModel(grid.getFootprints().toArray());
-    model.insertElementAt(token.getLayer() == Layer.TOKEN ? "Native Size" : "Free Size", 0);
+    model.insertElementAt(
+        token.getLayer().getLayerType() == Layer.LayerType.TOKEN ? "Native Size" : "Free Size", 0);
     size.setModel(model);
     if (token.isSnapToScale()) {
       size.setSelectedItem(token.getFootprint(grid));

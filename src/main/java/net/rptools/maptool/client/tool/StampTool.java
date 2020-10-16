@@ -66,7 +66,6 @@ import net.rptools.maptool.client.ui.zone.ZoneOverlay;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
-import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.util.ImageManager;
 
 /** Tool used for background and object tokens, and to resize a token in free size mode. */
@@ -94,7 +93,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
   // private Map<Shape, Token> rotateBoundsMap = new HashMap<Shape, Token>();
   private final Map<Shape, Token> resizeBoundsMap = new HashMap<Shape, Token>();
 
-  private final LayerSelectionDialog layerSelectionDialog;
+  private LayerSelectionDialog layerSelectionDialog;
 
   // Offset from token's X,Y when dragging. Values are in cell coordinates.
   private int dragOffsetX;
@@ -105,19 +104,8 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
   public StampTool() {
     layerSelectionDialog =
         new LayerSelectionDialog(
-            new Zone.Layer[] {
-              Zone.Layer.TOKEN, Zone.Layer.GM, Zone.Layer.OBJECT, Zone.Layer.BACKGROUND
-            },
-            layer -> {
-              if (renderer != null) {
-                renderer.setActiveLayer(layer);
-                MapTool.getFrame().setLastSelectedLayer(layer);
-
-                if (layer == Layer.TOKEN) {
-                  MapTool.getFrame().getToolbox().setSelectedTool(PointerTool.class);
-                }
-              }
-            });
+            new Layer[] {new Layer("Placeholder StampTool layer", Layer.LayerType.OBJECT)},
+            layer -> {});
     try {
       setIcon(
           new ImageIcon(ImageUtil.getImage("net/rptools/maptool/client/image/tool/stamper.png")));
@@ -143,7 +131,6 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
 
   @Override
   protected void attachTo(ZoneRenderer renderer) {
-    MapTool.getFrame().showControlPanel(layerSelectionDialog);
     super.attachTo(renderer);
 
     // Jamz: Lets remember token selections during Tool class switches which causes
@@ -152,7 +139,25 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
       renderer.setKeepSelectedTokenSet(true);
     }
 
+    layerSelectionDialog =
+        new LayerSelectionDialog(
+            renderer.getZone().getLayerList().toArray(new Layer[0]),
+            layer -> {
+              if (renderer != null) {
+                if (renderer.getActiveLayer() == null) {
+                  renderer.setActiveLayer(layer);
+                  MapTool.getFrame().setLastSelectedLayer(layer);
+                } else {
+                  layerSelectionDialog.setSelectedLayer(renderer.getActiveLayer());
+                }
+
+                if (layer.getLayerType() == Layer.LayerType.TOKEN) {
+                  MapTool.getFrame().getToolbox().setSelectedTool(PointerTool.class);
+                }
+              }
+            });
     layerSelectionDialog.updateViewList();
+    MapTool.getFrame().showControlPanel(layerSelectionDialog);
   }
 
   @Override

@@ -25,24 +25,10 @@ import net.rptools.maptool.client.ServerCommandClientImpl;
 import net.rptools.maptool.client.ui.zone.FogUtil;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.common.MapToolConstants;
-import net.rptools.maptool.model.Asset;
-import net.rptools.maptool.model.AssetManager;
-import net.rptools.maptool.model.Campaign;
-import net.rptools.maptool.model.CampaignProperties;
-import net.rptools.maptool.model.ExposedAreaMetaData;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Grid;
-import net.rptools.maptool.model.InitiativeList;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.InitiativeList.TokenInitiative;
-import net.rptools.maptool.model.Label;
-import net.rptools.maptool.model.MacroButtonProperties;
-import net.rptools.maptool.model.Pointer;
-import net.rptools.maptool.model.TextMessage;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.Zone.TopologyMode;
 import net.rptools.maptool.model.Zone.VisionType;
-import net.rptools.maptool.model.ZonePoint;
 import net.rptools.maptool.model.drawing.Drawable;
 import net.rptools.maptool.model.drawing.DrawnElement;
 import net.rptools.maptool.model.drawing.Pen;
@@ -218,7 +204,7 @@ public class ServerMethodHandler extends AbstractMethodHandler implements Server
               context.getGUID(0), context.getGUID(1), context.getInt(2), context.getInt(3));
           break;
         case clearAllDrawings:
-          clearAllDrawings(context.getGUID(0), (Zone.Layer) context.get(1));
+          clearAllDrawings(context.getGUID(0), (Layer.LayerType) context.get(1));
           break;
         case enforceZone:
           enforceZone(context.getGUID(0));
@@ -390,9 +376,9 @@ public class ServerMethodHandler extends AbstractMethodHandler implements Server
     }
   }
 
-  public void clearAllDrawings(GUID zoneGUID, Zone.Layer layer) {
+  public void clearAllDrawings(GUID zoneGUID, Layer.LayerType layerType) {
     Zone zone = server.getCampaign().getZone(zoneGUID);
-    List<DrawnElement> list = zone.getDrawnElements(layer);
+    List<DrawnElement> list = zone.getDrawnElements(layerType);
     zone.clearDrawables(list); // FJE Empties the DrawableUndoManager and empties the list
     forwardToAllClients();
   }

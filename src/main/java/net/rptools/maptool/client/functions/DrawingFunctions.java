@@ -26,8 +26,9 @@ import net.rptools.maptool.client.MapToolUtil;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.GUID;
+import net.rptools.maptool.model.Layer;
+import net.rptools.maptool.model.Layer.LayerType;
 import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.model.drawing.AbstractDrawing;
 import net.rptools.maptool.model.drawing.Drawable;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
@@ -92,6 +93,24 @@ public class DrawingFunctions extends AbstractFunction {
     MapTool.getFrame().updateDrawTree();
     MapTool.getFrame().refresh();
     return layer;
+  }
+
+  // TODO handle null layer
+  protected LayerType changeLayerType(Zone map, LayerType layerType, GUID guid) {
+    List<DrawnElement> drawableList = map.getAllDrawnElements();
+    for (DrawnElement de : drawableList) {
+      if (de.getDrawable().getLayer().getLayerType() != layerType
+          && de.getDrawable().getId().equals(guid)) {
+        map.removeDrawable(de.getDrawable().getId());
+        MapTool.serverCommand().undoDraw(map.getId(), de.getDrawable().getId());
+        de.getDrawable().setLayer(map.getLayerList().getLayer(layerType));
+        map.addDrawable(de);
+        MapTool.serverCommand().draw(map.getId(), de.getPen(), de.getDrawable());
+      }
+    }
+    MapTool.getFrame().updateDrawTree();
+    MapTool.getFrame().refresh();
+    return layerType;
   }
 
   /**
@@ -203,11 +222,21 @@ public class DrawingFunctions extends AbstractFunction {
    * @param layer String naming the layer
    * @return Layer
    */
-  protected Layer getLayer(String layer) {
-    if ("GM".equalsIgnoreCase(layer)) return Layer.GM;
-    else if ("OBJECT".equalsIgnoreCase(layer)) return Layer.OBJECT;
-    else if ("BACKGROUND".equalsIgnoreCase(layer)) return Layer.BACKGROUND;
-    return Layer.TOKEN;
+  protected Layer getLayer(Zone zone, String layer) {
+    return zone.getLayerList().getLayer(layer);
+  }
+
+  /**
+   * Take a string and return a layer
+   *
+   * @param layerType String naming the layer
+   * @return Layer
+   */
+  protected LayerType getLayerType(String layerType) {
+    if ("GM".equalsIgnoreCase(layerType)) return Layer.LayerType.GM;
+    else if ("OBJECT".equalsIgnoreCase(layerType)) return Layer.LayerType.OBJECT;
+    else if ("BACKGROUND".equalsIgnoreCase(layerType)) return Layer.LayerType.BACKGROUND;
+    else return Layer.LayerType.TOKEN;
   }
 
   /**

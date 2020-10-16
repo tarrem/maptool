@@ -21,22 +21,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.functions.ExecFunction;
 import net.rptools.maptool.client.functions.MacroLinkFunction;
-import net.rptools.maptool.model.Asset;
-import net.rptools.maptool.model.AssetManager;
-import net.rptools.maptool.model.Campaign;
-import net.rptools.maptool.model.CampaignProperties;
-import net.rptools.maptool.model.ExposedAreaMetaData;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.InitiativeList;
-import net.rptools.maptool.model.Label;
-import net.rptools.maptool.model.MacroButtonProperties;
-import net.rptools.maptool.model.Pointer;
-import net.rptools.maptool.model.TextMessage;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Zone.TopologyMode;
 import net.rptools.maptool.model.Zone.VisionType;
-import net.rptools.maptool.model.ZonePoint;
 import net.rptools.maptool.model.drawing.Drawable;
 import net.rptools.maptool.model.drawing.DrawnElement;
 import net.rptools.maptool.model.drawing.Pen;
@@ -203,8 +190,8 @@ public class ServerCommandClientImpl implements ServerCommand {
     makeServerCall(COMMAND.updateDrawing, zoneGUID, pen, drawnElement);
   }
 
-  public void clearAllDrawings(GUID zoneGUID, Zone.Layer layer) {
-    makeServerCall(COMMAND.clearAllDrawings, zoneGUID, layer);
+  public void clearAllDrawings(GUID zoneGUID, Layer.LayerType layerType) {
+    makeServerCall(COMMAND.clearAllDrawings, zoneGUID, layerType);
   }
 
   public void undoDraw(GUID zoneGUID, GUID drawableGUID) {

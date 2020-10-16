@@ -53,17 +53,8 @@ import net.rptools.maptool.client.ui.token.BooleanTokenOverlay;
 import net.rptools.maptool.client.ui.zone.FogUtil;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.CellPoint;
-import net.rptools.maptool.model.ExposedAreaMetaData;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.InitiativeList;
-import net.rptools.maptool.model.MacroButtonProperties;
-import net.rptools.maptool.model.Path;
-import net.rptools.maptool.model.Player;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Player.Role;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.ZonePoint;
 import net.rptools.maptool.util.FunctionUtil;
 
 public class TokenPopupMenu extends AbstractTokenPopupMenu {
@@ -92,7 +83,7 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
     }
     add(createHaloMenu());
     addOwnedItem(createArrangeMenu());
-    addGMItem(createChangeToMenu(Zone.Layer.GM, Zone.Layer.OBJECT, Zone.Layer.BACKGROUND));
+    addGMItem(createChangeToMenu((Layer[]) renderer.getZone().getLayerList().toArray()));
     add(new JSeparator());
 
     /*

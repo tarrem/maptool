@@ -16,7 +16,7 @@ bitwiseand	Performs a bitwise 'and' operation of the {number} arguments by takin
 bitwisenot	Performs a bitwise 'not' operation of the {number}. A bitwise not is performed by taking the binary representation of the {number} and performing a logical 'not' operation on each of these bits. <p><b>Logical "not" Table</b> <table><tr><td>Bit </td><td> Result </td></tr><tr><td align="center"> 0 </td><td align="center"> 1 </td></tr><tr><td align="center"> 1 </td><td align="center"> 0 </td></tr></table> <p><br /> Unfortunately its not quite as simple as the table above makes it appear since number are a string of 32 (or more bits) so a 1 in binary is actually a 00000000000000000000000000000001 and a 0 is actually a 00000000000000000000000000000000 so the table is now. <pre> bnot of binary 00000000000000000000000000000000 is 11111111111111111111111111111111 which is -1 in decimal </pre> <pre> bnot of binary 00000000000000000000000000000001 is 11111111111111111111111111111110 which is -2 in decimal </pre> If you are unsure why the results are negative then you can get more information by reading <a class="extiw" href="http://en.wikipedia.org/wiki/Twos_complement" title="wp:Twos complement">Twos_complement</a>
 bitwiseor	Performs a bitwise 'or' operation of the number arguments by taking the binary representation of each of the numbers and performing the logical or operation on each of the bits.
 bitwisexor	Performs a bitwise 'exlusive or' operation of the number arguments by taking the binary representation of each of the numbers and performing the logical exclusive or operation on each of the bits.
-bringDrawingToFront	For a specified drawing, moves the drawing to in front of all other drawings on the same layer.
+bringDrawingToFront	For a specified drawing, moves the drawing to in front of all other drawings on the same layerType.
 bringToFront	Adjust the z order (or draw order) of the <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Token</a> so that is is drawn after all other <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Tokens</a> on the same <a class="new" href="http://lmwcs.com/maptool/index.php?title=Map_Layer&action=edit&redlink=1" title="Map Layer (page does not exist)">Map Layer</a> , this has the effect of making the <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Token</a> appear to be in front of the other <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Tokens</a> as it will obscure other <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Tokens</a> on the same <a class="new" href="http://lmwcs.com/maptool/index.php?title=Map_Layer&action=edit&redlink=1" title="Map Layer (page does not exist)">Map Layer</a> in the same location.
 broadcast	Allows sending a message directly to the chat area of another/all connected MapTool clients.
 canSeeToken	Returns a json array of the points visible on the token as an enumerated list.
@@ -73,7 +73,7 @@ getDistance	Returns the distance between two tokens or objects.
 getDistanceToXY	Gets the distance to a target grid cell.
 getDrawingEraser	Returns a value corresponding to the eraser setting of the drawing.
 getDrawingInfo	Returns extensive information about the specified drawing.
-getDrawingLayer	For a specified drawing, returns the layer to which the drawing belongs.
+getDrawingLayer	For a specified drawing, returns the layerType to which the drawing belongs.
 getDrawingOpacity	Returns a value between 1 and 0 representing the transparency value of a specified drawing.
 getDrawingProperties	Returns the properties for a specified drawing.
 getEnvironmentVariable	Retrieves an operating system environment variable as a string.
@@ -321,7 +321,7 @@ return	Is used to conditionally return from the execution of a macro like an abo
 roll	Generates random numbers to emulate dice rolls.
 round	Returns the rounded value of a number to specified precision (number of digits after the decimal point). precision can be zero (default).
 selectTokens	Selects one or more visible tokens on the map.
-sendDrawingToBack	Moves the specified drawing to be behind of all other drawings on the same layer.
+sendDrawingToBack	Moves the specified drawing to be behind of all other drawings on the same layerType.
 sendToBack	Adjust the z-order (or draw order) of the <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Token</a> so that it is drawn before all other <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Tokens</a> on the same <a class="new" href="http://lmwcs.com/maptool/index.php?title=Map_Layer&action=edit&redlink=1" title="Map Layer (page does not exist)">Map Layer</a> , this has the effect of making the Token appear to be in back of the other <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Tokens</a> as it will be obscured by other <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Tokens</a> on the same <a class="new" href="http://lmwcs.com/maptool/index.php?title=Map_Layer&action=edit&redlink=1" title="Map Layer (page does not exist)">Map Layer</a> in the same location.
 set	Sets the value of a variable.
 setAllStates	Sets all of the <a class="mw-redirect" href="http://lmwcs.com/rptools/wiki/State" title="State">States</a> of a <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Token</a> to on ( <code>true</code> ( <code>1</code> )) or off ( <code>false</code> ( <code>0</code> )).
@@ -331,7 +331,7 @@ setBarVisible	Sets if the specified <a class="new" href="http://lmwcs.com/maptoo
 setCurrentInitiative	Gives the <a class="new" href="http://lmwcs.com/maptool/index.php?title=Initiative:Initiative&action=edit&redlink=1" title="Initiative:Initiative (page does not exist)">Initiative</a> to the <a href="http://lmwcs.com/rptools/wiki/Token" title="Token">Token</a> at the specified offset in the <a class="new" href="http://lmwcs.com/maptool/index.php?title=Iniatiative:Initiative_Panel&action=edit&redlink=1" title="Iniatiative:Initiative Panel (page does not exist)">Initiative Panel</a> .
 setCurrentMap	Designates the given map as the current one, allowing initiative to be moved from map to map.
 setDrawingEraser	Sets the eraser setting of the drawing that corresponds to the map and drawing id.
-setDrawingLayer	For a specified drawing, set the layer of the map to which the drawing belongs.
+setDrawingLayer	For a specified drawing, set the layerType of the map to which the drawing belongs.
 setDrawingOpacity	Sets the transparency value of a specified drawing.
 setDrawingProperties	Sets the properties for a specified drawing.
 setFillColor	Sets the colour or texture of the pen for a specified drawing.
@@ -408,7 +408,7 @@ switchToken	Changes the <a href="http://lmwcs.com/rptools/wiki/Current_Token" ti
 table	Gets the text value from the specified <code>table</code> .
 tableImage	Gets the image asset value from the specified <a class="new" href="http://lmwcs.com/maptool/index.php?title=Table&action=edit&redlink=1" title="Table (page does not exist)">table</a> .
 toggleFoW	Toggles the state of Fog of War (FoW) on the current map.
-transferVBL	Directly transfers VBL from token to the VBL layer if true; otherwise, it transfers from the VBL layer to the token.
+transferVBL	Directly transfers VBL from token to the VBL layerType if true; otherwise, it transfers from the VBL layerType to the token.
 trim	Returns a copy of the string that is passed in with the leading and trailing white space removed.
 ubiquity	Generates random numbers to emulate dice rolls; returns the total of a special Ubiquity dice roll.
 upper	Returns the upper case version of a string.

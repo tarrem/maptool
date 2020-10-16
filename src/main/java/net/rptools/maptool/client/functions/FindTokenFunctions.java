@@ -248,7 +248,7 @@ public class FindTokenFunctions extends AbstractFunction {
         // Can't use .toString() as it wraps in extra quotes - bug in the JSON lib?
         String name = ((JsonPrimitive) s).getAsString().toUpperCase();
         name = "HIDDEN".equals(name) ? "GM" : name;
-        name = Zone.Layer.valueOf(name).toString();
+        name = Layer.LayerType.valueOf(name).toString();
         filterLayers.add(name);
       }
     }
@@ -410,8 +410,8 @@ public class FindTokenFunctions extends AbstractFunction {
     JsonArray layers = null;
     if (!jobj.has("layer")) {
       layers = new JsonArray();
-      layers.add(Zone.Layer.TOKEN.toString());
-      layers.add(Zone.Layer.GM.toString());
+      layers.add(Layer.LayerType.TOKEN.toString());
+      layers.add(Layer.LayerType.GM.toString());
     } else {
       Object o = jobj.get("layer");
       if (o instanceof JsonArray) {

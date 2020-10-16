@@ -92,25 +92,8 @@ import net.rptools.maptool.client.ui.zone.FogUtil;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.client.utilities.DungeonDraftImporter;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.Asset;
-import net.rptools.maptool.model.AssetManager;
-import net.rptools.maptool.model.Campaign;
-import net.rptools.maptool.model.CampaignFactory;
-import net.rptools.maptool.model.CampaignProperties;
-import net.rptools.maptool.model.CellPoint;
-import net.rptools.maptool.model.ExposedAreaMetaData;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Grid;
-import net.rptools.maptool.model.LocalPlayer;
-import net.rptools.maptool.model.LookupTable;
-import net.rptools.maptool.model.Player;
-import net.rptools.maptool.model.TextMessage;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.Zone.Layer;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Zone.VisionType;
-import net.rptools.maptool.model.ZoneFactory;
-import net.rptools.maptool.model.ZonePoint;
 import net.rptools.maptool.model.drawing.DrawableTexturePaint;
 import net.rptools.maptool.server.ServerConfig;
 import net.rptools.maptool.server.ServerPolicy;
@@ -792,13 +775,13 @@ public class AppActions {
           if (renderer == null) {
             return;
           }
-          Zone.Layer layer = renderer.getActiveLayer();
-          if (!MapTool.confirm("msg.confirm.clearAllDrawings", layer)) {
+          Layer.LayerType layerType = renderer.getActiveLayer().getLayerType();
+          if (!MapTool.confirm("msg.confirm.clearAllDrawings", layerType)) {
             return;
           }
           // LATER: Integrate this with the undo stuff
           // FJE ServerMethodHandler.clearAllDrawings() now empties the DrawableUndoManager as well.
-          MapTool.serverCommand().clearAllDrawings(renderer.getZone().getId(), layer);
+          MapTool.serverCommand().clearAllDrawings(renderer.getZone().getId(), layerType);
         }
       };
 

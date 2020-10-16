@@ -50,16 +50,8 @@ import net.rptools.maptool.client.tool.PointerTool;
 import net.rptools.maptool.client.tool.StampTool;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
-import net.rptools.maptool.model.Direction;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Grid;
-import net.rptools.maptool.model.Light;
-import net.rptools.maptool.model.LightSource;
-import net.rptools.maptool.model.Token;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Token.TokenShape;
-import net.rptools.maptool.model.TokenFootprint;
-import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.ZonePoint;
 import net.rptools.maptool.util.FileUtil;
 import net.rptools.maptool.util.ImageManager;
 import net.rptools.maptool.util.PersistenceUtil;
@@ -184,9 +176,9 @@ public abstract class AbstractTokenPopupMenu extends JPopupMenu {
     return flipMenu;
   }
 
-  protected JMenu createChangeToMenu(Zone.Layer... types) {
+  protected JMenu createChangeToMenu(Layer[] layers) {
     JMenu changeTypeMenu = new JMenu(I18N.getText("token.popup.menu.change"));
-    for (Zone.Layer layer : types) {
+    for (Layer layer : layers) {
       changeTypeMenu.add(new JMenuItem(new ChangeTypeAction(layer)));
     }
     return changeTypeMenu;
@@ -303,9 +295,9 @@ public abstract class AbstractTokenPopupMenu extends JPopupMenu {
   }
 
   public class ChangeTypeAction extends AbstractAction {
-    private final Zone.Layer layer;
+    private final Layer layer;
 
-    public ChangeTypeAction(Zone.Layer layer) {
+    public ChangeTypeAction(Layer layer) {
       putValue(Action.NAME, layer.toString());
       this.layer = layer;
     }
@@ -317,7 +309,7 @@ public abstract class AbstractTokenPopupMenu extends JPopupMenu {
           continue;
         }
         token.setLayer(layer);
-        switch (layer) {
+        switch (layer.getLayerType()) {
           case BACKGROUND:
           case OBJECT:
             if (token.getShape() != TokenShape.FIGURE) token.setShape(TokenShape.TOP_DOWN);

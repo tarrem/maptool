@@ -80,37 +80,6 @@ public class Zone extends BaseModel {
     TOKEN_PANEL_CHANGED // the panel appearance changed
   }
 
-  /** The type of layer (TOKEN, GM, OBJECT or BACKGROUND). */
-  public enum Layer {
-    TOKEN("Token"),
-    GM("Hidden"),
-    OBJECT("Object"),
-    BACKGROUND("Background");
-
-    private String displayName;
-
-    Layer(String displayName) {
-      this.displayName = displayName;
-    }
-
-    @Override
-    public String toString() {
-      return displayName;
-    }
-
-    /** A simple interface to allow layers to be turned on/off */
-    private boolean drawEnabled = true;
-
-    /** @return drawEnabled */
-    public boolean isEnabled() {
-      return drawEnabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-      drawEnabled = enabled;
-    }
-  }
-
   /** The selection type (PC, NPC, ALL, GM). */
   public enum TokenSelection {
     PC,
@@ -133,11 +102,73 @@ public class Zone extends BaseModel {
     COMBINED
   }
 
+  public class LayerList extends ArrayList<Layer> {
+
+    public Layer getLayer(String layerName) {
+      List<Layer> layers = new LinkedList<>();
+      for (Layer layer : this) {
+        if (layer.getDisplayName() == layerName) {
+          return layer;
+        }
+      }
+      return null;
+    }
+
+    public Layer getLayer(Layer.LayerType layerType) {
+      Layer layer = this.getLayer(layerType.toString());
+      if (layer != null) {
+        return layer;
+      } else {
+        List<Layer> layers = this.getLayers(layerType);
+        return layers.isEmpty() ? null : layers.get(0);
+      }
+    }
+
+    public List<Layer> getLayers(Layer.LayerType layerType) {
+      List<Layer> layers = new LinkedList<>();
+      for (Layer layer : this) {
+        if (layer.getLayerType() == layerType) {
+          layers.add(layer);
+        }
+      }
+      return layers;
+    }
+
+    public List<DrawnElement> getDrawnElements(Layer.LayerType layerType) {
+      List<DrawnElement> drawables = new LinkedList<>();
+      for (Layer layer : this.getLayers(layerType)) {
+        drawables.addAll(layer.drawables);
+      }
+      return drawables;
+    }
+
+    public List<DrawnElement> getAllDrawnElements() {
+      List<DrawnElement> drawables = new LinkedList<DrawnElement>();
+      for (Layer layer : this) {
+        drawables.addAll(layer.drawables);
+      }
+      return drawables;
+    }
+
+    public void addDrawable(DrawnElement drawnElement) {
+      drawnElement.getDrawable().getLayer().drawables.add(drawnElement);
+    }
+
+    public void addDrawableRear(DrawnElement drawnElement) {
+      // Since the list is drawn in order
+      // items that are drawn first are at the "back"
+      ((LinkedList<DrawnElement>) drawnElement.getDrawable().getLayer().drawables)
+          .addFirst(drawnElement);
+    }
+  }
+
   public static final int DEFAULT_TOKEN_VISION_DISTANCE = 250; // In units
   public static final int DEFAULT_PIXELS_CELL = 50;
   public static final int DEFAULT_UNITS_PER_CELL = 5;
 
   public static final DrawablePaint DEFAULT_FOG = new DrawableColorPaint(Color.black);
+
+  private LayerList layerList;
 
   // The zones should be ordered. We could have the server assign each zone
   // an incrementing number as new zones are created, but that would take a lot
@@ -159,11 +190,6 @@ public class Zone extends BaseModel {
   private double unitsPerCell = DEFAULT_UNITS_PER_CELL;
   private AStarRoundingOptions aStarRounding = AStarRoundingOptions.NONE;
   private TopologyMode topologyMode = null; // get default from AppPreferences
-
-  private List<DrawnElement> drawables = new LinkedList<DrawnElement>();
-  private List<DrawnElement> gmDrawables = new LinkedList<DrawnElement>();
-  private List<DrawnElement> objectDrawables = new LinkedList<DrawnElement>();
-  private List<DrawnElement> backgroundDrawables = new LinkedList<DrawnElement>();
 
   private final Map<GUID, Label> labels = new LinkedHashMap<GUID, Label>();
   /** Map each token GUID to the corresponding token. */
@@ -227,6 +253,15 @@ public class Zone extends BaseModel {
     // setGrid(new SquareGrid());
     undo = new UndoPerZone(this); // registers as ModelChangeListener for drawables...
     addModelChangeListener(undo);
+
+    layerList = new LayerList();
+    Layer layer = new Layer("Test layer", Layer.LayerType.TOKEN);
+    System.out.println("Layer name: " + layer.getDisplayName());
+    layerList.add(new Layer(Layer.LayerType.TOKEN));
+    layerList.add(new Layer(Layer.LayerType.GM));
+    layerList.add(new Layer(Layer.LayerType.OBJECT));
+    layerList.add(new Layer(Layer.LayerType.BACKGROUND));
+    layerList.add(new Layer("Test Token Layer", Layer.LayerType.TOKEN));
   }
 
   public void setBackgroundPaint(DrawablePaint paint) {
@@ -307,6 +342,10 @@ public class Zone extends BaseModel {
     return fogPaint != null ? fogPaint : DEFAULT_FOG;
   }
 
+  public LayerList getLayerList() {
+    return layerList;
+  }
+
   /**
    * Note: When adding new fields to this class, make sure to update all constructors, {@link
    * #imported()}, {@link #readResolve()}, and potentially {@link #optimize()}.
@@ -352,30 +391,9 @@ public class Zone extends BaseModel {
     imageScaleX = zone.imageScaleX;
     imageScaleY = zone.imageScaleY;
 
-    // In the following blocks we allocate a new linked list then fill it with null values
-    // because the Collections.copy() method requires the destination list to already be
-    // of a large enough size. I couldn't find any method that would copy individual
-    // elements as it populated the new linked lists except those from the Apache Commons
-    // library that use a Transformer and that seemed like a lot more work. :-/
-    if (zone.drawables != null && !zone.drawables.isEmpty()) {
-      drawables = new LinkedList<DrawnElement>();
-      drawables.addAll(Collections.nCopies(zone.drawables.size(), null));
-      Collections.copy(drawables, zone.drawables);
-    }
-    if (zone.objectDrawables != null && !zone.objectDrawables.isEmpty()) {
-      objectDrawables = new LinkedList<DrawnElement>();
-      objectDrawables.addAll(Collections.nCopies(zone.objectDrawables.size(), null));
-      Collections.copy(objectDrawables, zone.objectDrawables);
-    }
-    if (zone.backgroundDrawables != null && !zone.backgroundDrawables.isEmpty()) {
-      backgroundDrawables = new LinkedList<DrawnElement>();
-      backgroundDrawables.addAll(Collections.nCopies(zone.backgroundDrawables.size(), null));
-      Collections.copy(backgroundDrawables, zone.backgroundDrawables);
-    }
-    if (zone.gmDrawables != null && !zone.gmDrawables.isEmpty()) {
-      gmDrawables = new LinkedList<DrawnElement>();
-      gmDrawables.addAll(Collections.nCopies(zone.gmDrawables.size(), null));
-      Collections.copy(gmDrawables, zone.gmDrawables);
+    this.layerList = new LayerList();
+    for (Layer layer : zone.layerList) {
+      this.layerList.add(new Layer(layer));
     }
     if (zone.labels != null && !zone.labels.isEmpty()) {
       for (GUID guid : zone.labels.keySet()) {
@@ -619,10 +637,7 @@ public class Zone extends BaseModel {
 
   public boolean isEmpty() {
     // @formatter:off
-    return (drawables == null || drawables.isEmpty())
-        && (gmDrawables == null || gmDrawables.isEmpty())
-        && (objectDrawables == null || objectDrawables.isEmpty())
-        && (backgroundDrawables == null || backgroundDrawables.isEmpty())
+    return (layerList.getAllDrawnElements().isEmpty())
         && (tokenOrderedList == null || tokenOrderedList.isEmpty())
         && (labels == null || labels.isEmpty());
     // @formatter:on
@@ -1152,32 +1167,12 @@ public class Zone extends BaseModel {
   ///////////////////////////////////////////////////////////////////////////
 
   public void addDrawable(DrawnElement drawnElement) {
-    switch (drawnElement.getDrawable().getLayer()) {
-      case OBJECT:
-        objectDrawables.add(drawnElement);
-        break;
-      case BACKGROUND:
-        backgroundDrawables.add(drawnElement);
-        break;
-      case GM:
-        gmDrawables.add(drawnElement);
-        break;
-      default:
-        drawables.add(drawnElement);
-    }
+    layerList.addDrawable(drawnElement);
     fireModelChangeEvent(new ModelChangeEvent(this, Event.DRAWABLE_ADDED, drawnElement));
   }
 
   public void updateDrawable(DrawnElement drawnElement, Pen pen) {
-    if (drawnElement.getDrawable().getLayer() == Layer.OBJECT) {
-      updatePen(objectDrawables, drawnElement, pen);
-    } else if (drawnElement.getDrawable().getLayer() == Layer.BACKGROUND) {
-      updatePen(backgroundDrawables, drawnElement, pen);
-    } else if (drawnElement.getDrawable().getLayer() == Layer.GM) {
-      updatePen(gmDrawables, drawnElement, pen);
-    } else {
-      updatePen(drawables, drawnElement, pen);
-    }
+    updatePen(drawnElement.getDrawable().getLayer().drawables, drawnElement, pen);
     fireModelChangeEvent(new ModelChangeEvent(this, Event.DRAWABLE_ADDED, drawnElement));
   }
 
@@ -1191,65 +1186,35 @@ public class Zone extends BaseModel {
   }
 
   public void addDrawableRear(DrawnElement drawnElement) {
-    // Since the list is drawn in order
-    // items that are drawn first are at the "back"
-    switch (drawnElement.getDrawable().getLayer()) {
-      case OBJECT:
-        ((LinkedList<DrawnElement>) objectDrawables).addFirst(drawnElement);
-        break;
-      case BACKGROUND:
-        ((LinkedList<DrawnElement>) backgroundDrawables).addFirst(drawnElement);
-        break;
-      case GM:
-        ((LinkedList<DrawnElement>) gmDrawables).addFirst(drawnElement);
-        break;
-      default:
-        ((LinkedList<DrawnElement>) drawables).addFirst(drawnElement);
-    }
+    layerList.addDrawableRear(drawnElement);
     fireModelChangeEvent(new ModelChangeEvent(this, Event.DRAWABLE_ADDED, drawnElement));
   }
 
   public List<DrawnElement> getDrawnElements() {
-    return getDrawnElements(Zone.Layer.TOKEN);
+    return getDrawnElements(Layer.LayerType.TOKEN);
   }
 
   public List<DrawnElement> getObjectDrawnElements() {
-    return getDrawnElements(Zone.Layer.OBJECT);
+    return getDrawnElements(Layer.LayerType.OBJECT);
   }
 
   public List<DrawnElement> getGMDrawnElements() {
-    return getDrawnElements(Zone.Layer.GM);
+    return getDrawnElements(Layer.LayerType.GM);
   }
 
   public List<DrawnElement> getBackgroundDrawnElements() {
-    return getDrawnElements(Zone.Layer.BACKGROUND);
+    return getDrawnElements(Layer.LayerType.BACKGROUND);
   }
 
-  public List<DrawnElement> getDrawnElements(Zone.Layer layer) {
-    switch (layer) {
-      case OBJECT:
-        return objectDrawables;
-      case GM:
-        return gmDrawables;
-      case BACKGROUND:
-        return backgroundDrawables;
-      default:
-        return drawables;
-    }
+  public List<DrawnElement> getDrawnElements(Layer.LayerType layerType) {
+    return layerList.getDrawnElements(layerType);
   }
 
   public void removeDrawable(GUID drawableId) {
     // Since we don't know anything about the drawable, look through all the layers
     // Do we need to remove it from the Undo manager as well? Probably. Perhaps some
     // UndoPerZone method that searches and deletes the drawable ID?
-    removeDrawable(drawables, drawableId);
-    removeDrawable(backgroundDrawables, drawableId);
-    removeDrawable(objectDrawables, drawableId);
-    removeDrawable(gmDrawables, drawableId);
-  }
-
-  private void removeDrawable(List<DrawnElement> drawableList, GUID drawableId) {
-    ListIterator<DrawnElement> i = drawableList.listIterator();
+    ListIterator<DrawnElement> i = layerList.getAllDrawnElements().listIterator();
     while (i.hasNext()) {
       DrawnElement drawable = i.next();
       if (drawable.getDrawable().getId().equals(drawableId)) {
@@ -1259,7 +1224,7 @@ public class Zone extends BaseModel {
       }
       if (drawable.getDrawable() instanceof DrawablesGroup) {
         DrawablesGroup dg = (DrawablesGroup) drawable.getDrawable();
-        removeDrawable(dg.getDrawableList(), drawableId);
+        removeDrawable(drawableId);
       }
     }
   }
@@ -1860,10 +1825,9 @@ public class Zone extends BaseModel {
    * happen when you can't undo your changes and re-expose a drawable, typically at load.
    */
   private void collapseDrawables() {
-    collapseDrawableLayer(drawables);
-    collapseDrawableLayer(gmDrawables);
-    collapseDrawableLayer(objectDrawables);
-    collapseDrawableLayer(backgroundDrawables);
+    for (Layer layer : layerList) {
+      collapseDrawableLayer(layer.drawables);
+    }
   }
 
   private void collapseDrawableLayer(List<DrawnElement> layer) {
@@ -1928,10 +1892,11 @@ public class Zone extends BaseModel {
     if (boardPosition == null) {
       boardPosition = new Point(0, 0);
     }
-    Zone.Layer.TOKEN.setEnabled(true);
-    Zone.Layer.GM.setEnabled(true);
-    Zone.Layer.OBJECT.setEnabled(true);
-    Zone.Layer.BACKGROUND.setEnabled(true);
+    // TODO refactor?
+    Layer.LayerType.TOKEN.setEnabled(true);
+    Layer.LayerType.GM.setEnabled(true);
+    Layer.LayerType.OBJECT.setEnabled(true);
+    Layer.LayerType.BACKGROUND.setEnabled(true);
 
     // 1.3b47 -> 1.3b48
     if (visionType == null) {

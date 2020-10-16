@@ -30,14 +30,8 @@ import java.io.InputStreamReader;
 import net.rptools.maptool.client.AppStyle;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.ui.MapPropertiesDialog;
-import net.rptools.maptool.model.Asset;
-import net.rptools.maptool.model.AssetManager;
-import net.rptools.maptool.model.GridFactory;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.Zone.Layer;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Zone.TopologyMode;
-import net.rptools.maptool.model.ZoneFactory;
 
 /** Class for importing Dungeondraft VTT export format. */
 public class DungeonDraftImporter {
@@ -200,7 +194,7 @@ public class DungeonDraftImporter {
       JsonObject position = ele.getAsJsonObject().getAsJsonObject("position");
       if (position.has("x") && position.has("y")) {
         Token lightToken = new Token("light-" + lightNo, lightSourceAsset.getId());
-        lightToken.setLayer(Layer.OBJECT);
+        lightToken.setLayer(zone.getLayerList().getLayer(Layer.LayerType.OBJECT));
         lightToken.setVisible(false);
         lightToken.setSnapToGrid(false);
         lightToken.setSnapToScale(false);

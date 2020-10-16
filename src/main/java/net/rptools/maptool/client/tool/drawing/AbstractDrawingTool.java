@@ -35,11 +35,7 @@ import net.rptools.maptool.client.tool.DefaultTool;
 import net.rptools.maptool.client.tool.LayerSelectionDialog;
 import net.rptools.maptool.client.ui.zone.ZoneOverlay;
 import net.rptools.maptool.client.ui.zone.ZoneRenderer;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Token;
-import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.Zone.Layer;
-import net.rptools.maptool.model.ZonePoint;
+import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.drawing.Drawable;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
 import net.rptools.maptool.model.drawing.Pen;
@@ -55,17 +51,13 @@ public abstract class AbstractDrawingTool extends DefaultTool implements ZoneOve
   private boolean isEraseSelected;
   private static final LayerSelectionDialog layerSelectionDialog;
 
-  private static Zone.Layer selectedLayer = Zone.Layer.TOKEN;
+  private static Layer selectedLayer;
 
   protected static final int TOOLBAR_ICON_SIZE = 32;
 
   static {
-    layerSelectionDialog =
-        new LayerSelectionDialog(
-            new Zone.Layer[] {
-              Zone.Layer.TOKEN, Zone.Layer.GM, Zone.Layer.OBJECT, Zone.Layer.BACKGROUND
-            },
-            layer -> selectedLayer = layer);
+    // TODO populate
+    layerSelectionDialog = new LayerSelectionDialog(new Layer[] {}, layer -> selectedLayer = layer);
   }
 
   protected Rectangle createRect(ZonePoint originPoint, ZonePoint newPoint) {
@@ -337,11 +329,12 @@ public abstract class AbstractDrawingTool extends DefaultTool implements ZoneOve
       return;
     }
     drawable.setLayer(selectedLayer);
-    if (MapTool.getPlayer().isGM()) {
-      drawable.setLayer(selectedLayer);
-    } else {
-      drawable.setLayer(Layer.TOKEN);
-    }
+    // TODO
+    //    if (MapTool.getPlayer().isGM()) {
+    //      drawable.setLayer(selectedLayer);
+    //    } else {
+    //      drawable.setLayer();
+    //    }
 
     // Send new textures
     MapToolUtil.uploadTexture(pen.getPaint());

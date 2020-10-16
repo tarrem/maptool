@@ -23,16 +23,16 @@ import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.swing.FormPanelI18N;
-import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.Layer;
 
 public class LayerSelectionDialog extends JPanel {
 
   private final FormPanel panel;
-  private JList<Zone.Layer> list;
+  private JList<Layer> list;
   private final LayerSelectionListener listener;
-  private final Zone.Layer[] layerList;
+  private final Layer[] layerList;
 
-  public LayerSelectionDialog(Zone.Layer[] layerList, LayerSelectionListener listener) {
+  public LayerSelectionDialog(Layer[] layerList, LayerSelectionListener listener) {
     panel = new FormPanelI18N("net/rptools/maptool/client/ui/forms/layerSelectionDialog.xml");
     this.listener = listener;
     this.layerList = layerList;
@@ -57,13 +57,20 @@ public class LayerSelectionDialog extends JPanel {
         .setSelectedValue(MapTool.getFrame().getCurrentZoneRenderer().getActiveLayer(), true);
   }
 
-  private JList<Zone.Layer> getLayerList() {
+  //  public void setLayerList(Layer[] layerList) {
+  //    this.layerList = layerList;
+  //    list = null;
+  //    updateViewList(); //  }
+
+  private JList<Layer> getLayerList() {
 
     if (list == null) {
-      list = panel.getList("layerList");
+      list = panel.getList("layerTypeList");
 
-      DefaultListModel<Zone.Layer> model = new DefaultListModel<>();
-      for (Zone.Layer layer : layerList) {
+      DefaultListModel<Layer> model = new DefaultListModel<>();
+      for (Layer layer : layerList) {
+        //      for (Layer layer :
+        // MapTool.getFrame().getCurrentZoneRenderer().getZone().getLayerList()) {
         model.addElement(layer);
       }
 
@@ -78,16 +85,21 @@ public class LayerSelectionDialog extends JPanel {
             fireViewSelectionChange();
           });
       list.setSelectedIndex(0);
+    } else {
+      System.out.println("Layer Selection Layers:");
+      for (Layer layer : layerList) {
+        System.out.println("\t" + layer.getDisplayName());
+      }
     }
 
     return list;
   }
 
-  public void setSelectedLayer(Zone.Layer layer) {
+  public void setSelectedLayer(Layer layer) {
     list.setSelectedValue(layer, true);
   }
 
   public interface LayerSelectionListener {
-    public void layerSelected(Zone.Layer layer);
+    public void layerSelected(Layer layer);
   }
 }
