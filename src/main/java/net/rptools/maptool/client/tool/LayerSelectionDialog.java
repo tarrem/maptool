@@ -30,7 +30,7 @@ public class LayerSelectionDialog extends JPanel {
   private final FormPanel panel;
   private JList<Layer> list;
   private final LayerSelectionListener listener;
-  private final Layer[] layerList;
+  private Layer[] layerList;
 
   public LayerSelectionDialog(Layer[] layerList, LayerSelectionListener listener) {
     panel = new FormPanelI18N("net/rptools/maptool/client/ui/forms/layerSelectionDialog.xml");
@@ -57,10 +57,20 @@ public class LayerSelectionDialog extends JPanel {
         .setSelectedValue(MapTool.getFrame().getCurrentZoneRenderer().getActiveLayer(), true);
   }
 
-  //  public void setLayerList(Layer[] layerList) {
-  //    this.layerList = layerList;
-  //    list = null;
-  //    updateViewList(); //  }
+  public void setLayerList(Layer[] layerList) {
+    this.layerList = layerList;
+
+    DefaultListModel<Layer> model = new DefaultListModel<>();
+    for (Layer layer : layerList) {
+      model.addElement(layer);
+    }
+
+    list.setModel(model);
+  }
+
+  public Layer[] getLayers() {
+    return layerList;
+  }
 
   private JList<Layer> getLayerList() {
 
@@ -69,8 +79,6 @@ public class LayerSelectionDialog extends JPanel {
 
       DefaultListModel<Layer> model = new DefaultListModel<>();
       for (Layer layer : layerList) {
-        //      for (Layer layer :
-        // MapTool.getFrame().getCurrentZoneRenderer().getZone().getLayerList()) {
         model.addElement(layer);
       }
 

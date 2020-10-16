@@ -93,7 +93,8 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
   // private Map<Shape, Token> rotateBoundsMap = new HashMap<Shape, Token>();
   private final Map<Shape, Token> resizeBoundsMap = new HashMap<Shape, Token>();
 
-  private LayerSelectionDialog layerSelectionDialog;
+  private final LayerSelectionDialog layerSelectionDialog;
+  private boolean hasLayerSelectionDialogPlaceholder;
 
   // Offset from token's X,Y when dragging. Values are in cell coordinates.
   private int dragOffsetX;
@@ -104,8 +105,22 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
   public StampTool() {
     layerSelectionDialog =
         new LayerSelectionDialog(
-            new Layer[] {new Layer("Placeholder StampTool layer", Layer.LayerType.OBJECT)},
-            layer -> {});
+            new Layer[] {new Layer("Placeholder Stamp Layer", Layer.LayerType.OBJECT)},
+            layer -> {
+              if (renderer != null) {
+
+                System.out.println("Stamp Active Layer: " + layer.getDisplayName());
+
+                renderer.setActiveLayer(layer);
+                MapTool.getFrame().setLastSelectedLayer(layer);
+
+                if (layer.getLayerType() == Layer.LayerType.TOKEN) {
+                  MapTool.getFrame().getToolbox().setSelectedTool(PointerTool.class);
+                }
+              }
+            });
+    hasLayerSelectionDialogPlaceholder = true;
+
     try {
       setIcon(
           new ImageIcon(ImageUtil.getImage("net/rptools/maptool/client/image/tool/stamper.png")));
@@ -139,23 +154,10 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
       renderer.setKeepSelectedTokenSet(true);
     }
 
-    layerSelectionDialog =
-        new LayerSelectionDialog(
-            renderer.getZone().getLayerList().toArray(new Layer[0]),
-            layer -> {
-              if (renderer != null) {
-                if (renderer.getActiveLayer() == null) {
-                  renderer.setActiveLayer(layer);
-                  MapTool.getFrame().setLastSelectedLayer(layer);
-                } else {
-                  layerSelectionDialog.setSelectedLayer(renderer.getActiveLayer());
-                }
-
-                if (layer.getLayerType() == Layer.LayerType.TOKEN) {
-                  MapTool.getFrame().getToolbox().setSelectedTool(PointerTool.class);
-                }
-              }
-            });
+    if (hasLayerSelectionDialogPlaceholder) {
+      layerSelectionDialog.setLayerList(renderer.getZone().getLayerList().toArray(new Layer[0]));
+      hasLayerSelectionDialogPlaceholder = false;
+    }
     layerSelectionDialog.updateViewList();
     MapTool.getFrame().showControlPanel(layerSelectionDialog);
   }

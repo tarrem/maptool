@@ -87,7 +87,8 @@ public class PointerTool extends DefaultTool {
   private final TokenStackPanel tokenStackPanel = new TokenStackPanel();
   private final HTMLPanelRenderer htmlRenderer = new HTMLPanelRenderer();
   private final Font boldFont = AppStyle.labelFont.deriveFont(Font.BOLD);
-  private LayerSelectionDialog layerSelectionDialog;
+  private final LayerSelectionDialog layerSelectionDialog;
+  private boolean hasLayerSelectionDialogPlaceholder;
 
   private BufferedImage statSheet;
   private Token tokenOnStatSheet;
@@ -118,7 +119,20 @@ public class PointerTool extends DefaultTool {
     layerSelectionDialog =
         new LayerSelectionDialog(
             new Layer[] {new Layer("Placeholder Pointer Layer", Layer.LayerType.TOKEN)},
-            layer -> {});
+            layer -> {
+              if (renderer != null) {
+
+                System.out.println("Pointer Active layer: " + layer.getDisplayName());
+
+                renderer.setActiveLayer(layer);
+                MapTool.getFrame().setLastSelectedLayer(layer);
+
+                if (layer.getLayerType() != Layer.LayerType.TOKEN) {
+                  MapTool.getFrame().getToolbox().setSelectedTool(StampTool.class);
+                }
+              }
+            });
+    hasLayerSelectionDialogPlaceholder = true;
   }
 
   @Override
@@ -131,27 +145,10 @@ public class PointerTool extends DefaultTool {
       MapTool.getFrame().getToolbox().setSelectedTool(StampTool.class);
     }
 
-    layerSelectionDialog =
-        new LayerSelectionDialog(
-            renderer.getZone().getLayerList().toArray(new Layer[0]),
-            layer -> {
-              if (renderer != null) {
-                System.out.println("Active layer: " + layer.getDisplayName());
-                if (renderer.getActiveLayer() == null) {
-
-                  System.out.println("Default Active layer: " + layer.getDisplayName());
-
-                  renderer.setActiveLayer(layer);
-                  MapTool.getFrame().setLastSelectedLayer(layer);
-                } else {
-                  layerSelectionDialog.setSelectedLayer(renderer.getActiveLayer());
-                }
-
-                if (layer.getLayerType() != Layer.LayerType.TOKEN) {
-                  MapTool.getFrame().getToolbox().setSelectedTool(StampTool.class);
-                }
-              }
-            });
+    if (hasLayerSelectionDialogPlaceholder) {
+      layerSelectionDialog.setLayerList(renderer.getZone().getLayerList().toArray(new Layer[0]));
+      hasLayerSelectionDialogPlaceholder = false;
+    }
     layerSelectionDialog.updateViewList();
     if (MapTool.getPlayer().isGM()) {
       MapTool.getFrame().showControlPanel(layerSelectionDialog);
