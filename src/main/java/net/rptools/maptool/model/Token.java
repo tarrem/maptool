@@ -365,6 +365,7 @@ public class Token extends BaseModel implements Cloneable {
     isFlippedIso = token.isFlippedIso;
 
     layer = token.layer;
+    getZoneRenderer().getZone().getLayerList().getLayer(layer);
 
     visionOverlayColor = token.visionOverlayColor;
 
@@ -770,12 +771,16 @@ public class Token extends BaseModel implements Cloneable {
 
   // TODO test
   public Layer getLayer() {
+    if (actualLayer == null) {
+      Layer tempLayer = getZoneRenderer().getZone().getLayerList().getLayer(layer);
+      actualLayer = tempLayer;
+    }
     return actualLayer;
   }
 
   public void setLayer(Layer layer) {
-    this.layer = layer.getDisplayName();
-    actualLayer = layer;
+    this.layer = layer.getName();
+    this.actualLayer = layer;
   }
 
   public boolean hasFacing() {

@@ -52,7 +52,7 @@ public class Layer {
     }
   }
 
-  private String displayName;
+  private String name;
 
   private LayerType layerType;
 
@@ -62,11 +62,11 @@ public class Layer {
 
   @Override
   public String toString() {
-    return displayName;
+    return name;
   }
 
-  public String getDisplayName() {
-    return displayName;
+  public String getName() {
+    return name;
   }
 
   public boolean isEnabled() {
@@ -79,21 +79,21 @@ public class Layer {
 
   public void setLayerType(LayerType layerType) {
     this.layerType = layerType;
-    if (this.displayName == null) {
-      this.displayName = layerType.displayName;
+    if (this.name == null) {
+      this.name = layerType.displayName;
     }
   }
 
   public Layer(LayerType layerType) {
     this.layerType = layerType;
-    this.displayName = layerType.displayName;
+    this.name = layerType.displayName;
     this.drawables = new LinkedList<>();
     this.drawEnabled = true;
   }
 
   public Layer(String name, LayerType layerType) {
     this(layerType);
-    this.displayName = name;
+    this.name = name;
   }
 
   public Layer(Layer layer) {

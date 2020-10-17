@@ -93,11 +93,6 @@ public class LayerSelectionDialog extends JPanel {
             fireViewSelectionChange();
           });
       list.setSelectedIndex(0);
-    } else {
-      System.out.println("Layer Selection Layers:");
-      for (Layer layer : layerList) {
-        System.out.println("\t" + layer.getDisplayName());
-      }
     }
 
     return list;

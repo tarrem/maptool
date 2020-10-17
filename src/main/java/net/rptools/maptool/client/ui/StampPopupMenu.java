@@ -36,7 +36,7 @@ public class StampPopupMenu extends AbstractTokenPopupMenu {
     add(createFlipMenu());
     add(createSizeMenu());
     add(createArrangeMenu());
-    add(createChangeToMenu((Layer[]) renderer.getZone().getLayerList().toArray()));
+    add(createChangeToMenu(renderer.getZone().getLayerList().toArray(new Layer[0])));
     if (getTokenUnderMouse().getCharsheetImage() != null
         && AppUtil.playerOwns(getTokenUnderMouse())) {
       add(new ShowHandoutAction());

@@ -50,14 +50,18 @@ public abstract class AbstractDrawingTool extends DefaultTool implements ZoneOve
   private boolean isSnapToGridSelected;
   private boolean isEraseSelected;
   private static final LayerSelectionDialog layerSelectionDialog;
+  private static boolean hasLayerSelectionDialogPlaceholder;
 
   private static Layer selectedLayer;
 
   protected static final int TOOLBAR_ICON_SIZE = 32;
 
   static {
-    // TODO populate
-    layerSelectionDialog = new LayerSelectionDialog(new Layer[] {}, layer -> selectedLayer = layer);
+    layerSelectionDialog =
+        new LayerSelectionDialog(
+            new Layer[] {new Layer("Placeholder Drawing Layer", Layer.LayerType.BACKGROUND)},
+            layer -> selectedLayer = layer);
+    hasLayerSelectionDialogPlaceholder = true;
   }
 
   protected Rectangle createRect(ZonePoint originPoint, ZonePoint newPoint) {
@@ -131,6 +135,11 @@ public abstract class AbstractDrawingTool extends DefaultTool implements ZoneOve
   @Override
   protected void attachTo(ZoneRenderer renderer) {
     if (MapTool.getPlayer().isGM()) {
+      if (hasLayerSelectionDialogPlaceholder) {
+        layerSelectionDialog.setLayerList(renderer.getZone().getLayerList().toArray(new Layer[0]));
+        layerSelectionDialog.updateViewList();
+        hasLayerSelectionDialogPlaceholder = false;
+      }
       MapTool.getFrame()
           .showControlPanel(MapTool.getFrame().getColorPicker(), layerSelectionDialog);
     } else {
@@ -328,7 +337,7 @@ public abstract class AbstractDrawingTool extends DefaultTool implements ZoneOve
     if (drawable.getBounds() == null) {
       return;
     }
-    drawable.setLayer(selectedLayer);
+    drawable.setLayer(selectedLayer.getName());
     // TODO
     //    if (MapTool.getPlayer().isGM()) {
     //      drawable.setLayer(selectedLayer);

@@ -17,7 +17,6 @@ package net.rptools.maptool.model.drawing;
 import java.awt.Graphics2D;
 import java.awt.geom.Area;
 import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.Layer;
 
 /** @author drice */
 public interface Drawable {
@@ -29,7 +28,7 @@ public interface Drawable {
 
   public GUID getId();
 
-  public Layer getLayer();
+  public String getLayer();
 
-  public void setLayer(Layer layer);
+  public void setLayer(String layer);
 }

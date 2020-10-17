@@ -221,7 +221,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
     if (functionName.equals("getLayer")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
-      return token.getLayer().getDisplayName();
+      return token.getLayer().getName();
     }
 
     /*

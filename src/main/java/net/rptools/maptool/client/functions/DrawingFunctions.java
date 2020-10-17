@@ -82,10 +82,10 @@ public class DrawingFunctions extends AbstractFunction {
   protected Layer changeLayer(Zone map, Layer layer, GUID guid) {
     List<DrawnElement> drawableList = map.getAllDrawnElements();
     for (DrawnElement de : drawableList) {
-      if (de.getDrawable().getLayer() != layer && de.getDrawable().getId().equals(guid)) {
+      if (de.getDrawable().getLayer() != layer.getName() && de.getDrawable().getId().equals(guid)) {
         map.removeDrawable(de.getDrawable().getId());
         MapTool.serverCommand().undoDraw(map.getId(), de.getDrawable().getId());
-        de.getDrawable().setLayer(layer);
+        de.getDrawable().setLayer(layer.getName());
         map.addDrawable(de);
         MapTool.serverCommand().draw(map.getId(), de.getPen(), de.getDrawable());
       }
@@ -95,24 +95,26 @@ public class DrawingFunctions extends AbstractFunction {
     return layer;
   }
 
-  // TODO handle null layer
-  protected LayerType changeLayerType(Zone map, LayerType layerType, GUID guid) {
-    List<DrawnElement> drawableList = map.getAllDrawnElements();
-    for (DrawnElement de : drawableList) {
-      if (de.getDrawable().getLayer().getLayerType() != layerType
-          && de.getDrawable().getId().equals(guid)) {
-        map.removeDrawable(de.getDrawable().getId());
-        MapTool.serverCommand().undoDraw(map.getId(), de.getDrawable().getId());
-        de.getDrawable().setLayer(map.getLayerList().getLayer(layerType));
-        map.addDrawable(de);
-        MapTool.serverCommand().draw(map.getId(), de.getPen(), de.getDrawable());
-      }
-    }
-    MapTool.getFrame().updateDrawTree();
-    MapTool.getFrame().refresh();
-    return layerType;
-  }
-
+  //  // TODO handle null layer; How would this handle multiple layers of the same type in
+  // Zone.LayerMap?
+  //  protected LayerType changeLayerType(Zone map, LayerType layerType, GUID guid) {
+  //    List<DrawnElement> drawableList = map.getAllDrawnElements();
+  //    for (DrawnElement de : drawableList) {
+  //      Layer deLayer = map.getLayerList().getLayer(de.getDrawable().getLayer());
+  //      if (deLayer.getLayerType() != layerType
+  //          && de.getDrawable().getId().equals(guid)) {
+  //        map.removeDrawable(de.getDrawable().getId());
+  //        MapTool.serverCommand().undoDraw(map.getId(), de.getDrawable().getId());
+  //        de.getDrawable().setLayer(map.getLayerList().getLayer(layerType));
+  //        map.addDrawable(de);
+  //        MapTool.serverCommand().draw(map.getId(), de.getPen(), de.getDrawable());
+  //      }
+  //    }
+  //    MapTool.getFrame().updateDrawTree();
+  //    MapTool.getFrame().refresh();
+  //    return layerType;
+  //  }
+  //
   /**
    * Checks whether or not the function is trusted
    *

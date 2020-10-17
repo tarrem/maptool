@@ -105,9 +105,8 @@ public class Zone extends BaseModel {
   public class LayerList extends ArrayList<Layer> {
 
     public Layer getLayer(String layerName) {
-      List<Layer> layers = new LinkedList<>();
       for (Layer layer : this) {
-        if (layer.getDisplayName() == layerName) {
+        if (layer.getName().equals(layerName)) {
           return layer;
         }
       }
@@ -151,13 +150,13 @@ public class Zone extends BaseModel {
     }
 
     public void addDrawable(DrawnElement drawnElement) {
-      drawnElement.getDrawable().getLayer().drawables.add(drawnElement);
+      this.getLayer(drawnElement.getDrawable().getLayer()).drawables.add(drawnElement);
     }
 
     public void addDrawableRear(DrawnElement drawnElement) {
       // Since the list is drawn in order
       // items that are drawn first are at the "back"
-      ((LinkedList<DrawnElement>) drawnElement.getDrawable().getLayer().drawables)
+      ((LinkedList<DrawnElement>) this.getLayer(drawnElement.getDrawable().getLayer()).drawables)
           .addFirst(drawnElement);
     }
   }
@@ -256,7 +255,7 @@ public class Zone extends BaseModel {
 
     layerList = new LayerList();
     Layer layer = new Layer("Test layer", Layer.LayerType.TOKEN);
-    System.out.println("Layer name: " + layer.getDisplayName());
+    System.out.println("Layer name: " + layer.getName());
     layerList.add(new Layer(Layer.LayerType.TOKEN));
     layerList.add(new Layer(Layer.LayerType.GM));
     layerList.add(new Layer(Layer.LayerType.OBJECT));
@@ -1172,7 +1171,8 @@ public class Zone extends BaseModel {
   }
 
   public void updateDrawable(DrawnElement drawnElement, Pen pen) {
-    updatePen(drawnElement.getDrawable().getLayer().drawables, drawnElement, pen);
+    updatePen(
+        layerList.getLayer(drawnElement.getDrawable().getLayer()).drawables, drawnElement, pen);
     fireModelChangeEvent(new ModelChangeEvent(this, Event.DRAWABLE_ADDED, drawnElement));
   }
 

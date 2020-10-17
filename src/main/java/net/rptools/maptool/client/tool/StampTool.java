@@ -108,9 +108,6 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
             new Layer[] {new Layer("Placeholder Stamp Layer", Layer.LayerType.OBJECT)},
             layer -> {
               if (renderer != null) {
-
-                System.out.println("Stamp Active Layer: " + layer.getDisplayName());
-
                 renderer.setActiveLayer(layer);
                 MapTool.getFrame().setLastSelectedLayer(layer);
 

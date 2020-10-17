@@ -122,7 +122,7 @@ public class PointerTool extends DefaultTool {
             layer -> {
               if (renderer != null) {
 
-                System.out.println("Pointer Active layer: " + layer.getDisplayName());
+                System.out.println("Pointer Active layer: " + layer.getName());
 
                 renderer.setActiveLayer(layer);
                 MapTool.getFrame().setLastSelectedLayer(layer);

@@ -83,7 +83,7 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
     }
     add(createHaloMenu());
     addOwnedItem(createArrangeMenu());
-    addGMItem(createChangeToMenu((Layer[]) renderer.getZone().getLayerList().toArray()));
+    addGMItem(createChangeToMenu(renderer.getZone().getLayerList().toArray(new Layer[0])));
     add(new JSeparator());
 
     /*

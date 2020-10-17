@@ -17,7 +17,6 @@ package net.rptools.maptool.client.functions;
 import java.util.List;
 import net.rptools.maptool.model.GUID;
 import net.rptools.maptool.model.Layer;
-import net.rptools.maptool.model.Layer.LayerType;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.drawing.Pen;
 import net.rptools.maptool.util.FunctionUtil;
@@ -59,9 +58,10 @@ public class DrawingSetterFunctions extends DrawingFunctions {
     if ("setDrawingLayer".equalsIgnoreCase(functionName)) {
       Layer layer = getLayer(map, parameters.get(2).toString());
       return changeLayer(map, layer, guid);
-    } else if ("setDrawingLayerType".equalsIgnoreCase(functionName)) {
-      LayerType layerType = getLayerType(parameters.get(2).toString());
-      return changeLayerType(map, layerType, guid);
+      // TODO implement; see DrawingFunctions.java
+      //    } else if ("setDrawingLayerType".equalsIgnoreCase(functionName)) {
+      //      LayerType layerType = getLayerType(parameters.get(2).toString());
+      //      return changeLayerType(map, layerType, guid);
     } else if ("setDrawingOpacity".equalsIgnoreCase(functionName)) {
       String opacity = parameters.get(2).toString();
       float op = getFloatPercent(functionName, opacity);

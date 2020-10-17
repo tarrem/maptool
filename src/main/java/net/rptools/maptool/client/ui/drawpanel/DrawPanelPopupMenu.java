@@ -80,7 +80,7 @@ public class DrawPanelPopupMenu extends JPopupMenu {
 
     Zone.LayerList layerList = renderer.getZone().getLayerList();
 
-    addGMItem(createChangeToMenu((Layer[]) layerList.toArray()));
+    addGMItem(createChangeToMenu(layerList.toArray(new Layer[0])));
     addGMItem(createArrangeMenu());
     if (isDrawnElementGroup(elementUnderMouse)) {
       add(new UngroupDrawingsAction());
@@ -125,11 +125,11 @@ public class DrawPanelPopupMenu extends JPopupMenu {
     public void actionPerformed(ActionEvent e) {
       List<DrawnElement> drawableList = renderer.getZone().getAllDrawnElements();
       for (DrawnElement de : drawableList) {
-        if (de.getDrawable().getLayer() != this.layer
+        if (de.getDrawable().getLayer() != this.layer.getName()
             && selectedDrawSet.contains(de.getDrawable().getId())) {
           renderer.getZone().removeDrawable(de.getDrawable().getId());
           MapTool.serverCommand().undoDraw(renderer.getZone().getId(), de.getDrawable().getId());
-          de.getDrawable().setLayer(this.layer);
+          de.getDrawable().setLayer(this.layer.getName());
           renderer.getZone().addDrawable(de);
           MapTool.serverCommand().draw(renderer.getZone().getId(), de.getPen(), de.getDrawable());
         }
@@ -197,11 +197,11 @@ public class DrawPanelPopupMenu extends JPopupMenu {
       super("Group Drawings");
       enabled = selectedDrawSet.size() > 1;
       if (enabled) {
+        Layer deLayer =
+            renderer.getZone().getLayerList().getLayer(elementUnderMouse.getDrawable().getLayer());
         List<DrawnElement> zoneList =
-            // TODO change to layer
-            renderer
-                .getZone()
-                .getDrawnElements(elementUnderMouse.getDrawable().getLayer().getLayerType());
+            // TODO use drawables from layer instead of all layers of a LayerType?
+            renderer.getZone().getDrawnElements(deLayer.getLayerType());
         for (GUID id : selectedDrawSet) {
           DrawnElement de = renderer.getZone().getDrawnElement(id);
           if (!zoneList.contains(de) || isDrawnElementTemplate(de)) {
@@ -249,11 +249,11 @@ public class DrawPanelPopupMenu extends JPopupMenu {
       super("Merge Drawings");
       enabled = selectedDrawSet.size() > 1;
       if (enabled) {
+        Layer deLayer =
+            renderer.getZone().getLayerList().getLayer(elementUnderMouse.getDrawable().getLayer());
         List<DrawnElement> zoneList =
-            // TODO change to layer
-            renderer
-                .getZone()
-                .getDrawnElements(elementUnderMouse.getDrawable().getLayer().getLayerType());
+            // TODO use drawables from layer instead of all layers of a LayerType?
+            renderer.getZone().getDrawnElements(deLayer.getLayerType());
         for (GUID id : selectedDrawSet) {
           DrawnElement de = renderer.getZone().getDrawnElement(id);
           if (!zoneList.contains(de) || isDrawnElementGroup(de) || isDrawnElementTemplate(de)) {
